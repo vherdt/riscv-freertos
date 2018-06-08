@@ -134,9 +134,9 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName );
 
 /*-----------------------------------------------------------*/
 
-int main( void )
+int main( void ) 
 {
-TimerHandle_t xCheckTimer = NULL;
+    TimerHandle_t xCheckTimer = NULL;
 
 	/* Create the standard demo tasks, including the interrupt nesting test
 	tasks. */
@@ -165,7 +165,7 @@ TimerHandle_t xCheckTimer = NULL;
 
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
 	vTaskStartScheduler();
-
+	
 	/* Exit FreeRTOS */
 	return 0;
 }
@@ -209,7 +209,7 @@ unsigned long ulErrorFound = pdFALSE;
 
     /* Do _not_ stop the scheduler; this would halt the system, but was left for reference on how to do so */
 	/* Stop scheduler */
-//    vTaskEndScheduler();
+    //vTaskEndScheduler();
 
 }
 /*-----------------------------------------------------------*/
