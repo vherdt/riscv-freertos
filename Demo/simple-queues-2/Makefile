@@ -89,7 +89,6 @@ DEMO_SRC = \
 
 INCLUDES = \
 	-I. \
-	-I$(RISCV)/include/spike \
 	-I./arch \
 	-I./conf \
 	-I./include \
@@ -147,6 +146,6 @@ force_true:
 
 #-------------------------------------------------------------
 sim: all
-	spike $(PROG).elf
+	riscv-vp $(PROG).elf --memory-start=2147483648
 
 
