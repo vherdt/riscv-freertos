@@ -17,6 +17,8 @@ PROG	= riscv-main
 CRT0	= arch/boot.S
 
 FREERTOS_SOURCE_DIR	= ../../Source
+FREERTOS_PLUS_DIR	= ../../Plus
+FREERTOS_PLUS_UDP_DIR = ../../Plus/FreeRTOS-Plus-UDP
 CUNIT	= ../../../cunit
 
 #-----------------------------------------------------------

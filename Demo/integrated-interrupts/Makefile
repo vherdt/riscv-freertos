@@ -67,8 +67,7 @@ FREERTOS_SRC = \
 	$(FREERTOS_SOURCE_DIR)/tasks.c \
 	$(FREERTOS_SOURCE_DIR)/timers.c \
 	$(FREERTOS_SOURCE_DIR)/event_groups.c \
-	$(FREERTOS_SOURCE_DIR)/portable/MemMang/heap_2.c \
-	$(FREERTOS_SOURCE_DIR)/string.c
+	$(FREERTOS_SOURCE_DIR)/portable/MemMang/heap_2.c
 
 
 APP_SOURCE_DIR	= ../Common/Minimal
