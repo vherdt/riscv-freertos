@@ -31,6 +31,10 @@
 /* This file provides default values for configuration options that are missing
 from the FreeRTOSIPConfig.h configuration header file. */
 
+#define ipconfigUDP_TASK_STACK_SIZE_WORDS 1024
+#define ipconfigUDP_TASK_PRIORITY (configMAX_PRIORITIES - 1)
+
+
 #ifndef ipconfigUSE_NETWORK_EVENT_HOOK
 	#define ipconfigUSE_NETWORK_EVENT_HOOK 0
 #endif

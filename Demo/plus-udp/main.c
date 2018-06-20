@@ -10,6 +10,14 @@
 #include "arch/clib.h"
 #include "arch/irq.h"
 
+
+unsigned long ipconfigRAND32( void );
+
+//TODO: use a random number here, e.g. obtain from VP through MMIO
+unsigned long ipconfigRAND32( void ) {
+    return 46274;
+}
+
 /*
  * FreeRTOS hook for when malloc fails, enable in FreeRTOSConfig.
  */

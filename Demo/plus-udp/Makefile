@@ -67,8 +67,7 @@ FREERTOS_SRC = \
 	$(FREERTOS_SOURCE_DIR)/tasks.c \
 	$(FREERTOS_SOURCE_DIR)/timers.c \
 	$(FREERTOS_SOURCE_DIR)/event_groups.c \
-	$(FREERTOS_SOURCE_DIR)/portable/MemMang/heap_2.c \
-	$(FREERTOS_SOURCE_DIR)/string.c
+	$(FREERTOS_SOURCE_DIR)/portable/MemMang/heap_4.c
 
 
 APP_SOURCE_DIR	= ../Common/Minimal
@@ -81,6 +80,15 @@ APP_SRC =  \
 
 PORT_SRC = $(FREERTOS_SOURCE_DIR)/portable/GCC/RISCV/port.c
 PORT_ASM = $(FREERTOS_SOURCE_DIR)/portable/GCC/RISCV/portasm.S
+
+PLUS_UDP_SRC =  \
+    $(FREERTOS_PLUS_UDP_DIR)/FreeRTOS_DHCP.c \
+    $(FREERTOS_PLUS_UDP_DIR)/FreeRTOS_DNS.c \
+    $(FREERTOS_PLUS_UDP_DIR)/FreeRTOS_Sockets.c \
+    $(FREERTOS_PLUS_UDP_DIR)/FreeRTOS_UDP_IP.c \
+    $(FREERTOS_PLUS_UDP_DIR)/portable/BufferManagement/BufferAllocation_2.c
+    
+PORT_UDP_SRC = $(FREERTOS_PLUS_UDP_DIR)/portable/NetworkInterface/riscv-vp/NetworkInterface.c
 
 DEMO_SRC = \
 	arch/syscalls.c \
@@ -95,7 +103,9 @@ INCLUDES = \
 	-I./include \
 	-I$(FREERTOS_SOURCE_DIR)/include \
 	-I../Common/include \
-	-I$(FREERTOS_SOURCE_DIR)/portable/GCC/RISCV
+	-I$(FREERTOS_SOURCE_DIR)/portable/GCC/RISCV \
+	-I$(FREERTOS_PLUS_UDP_DIR)/include \
+	-I$(FREERTOS_PLUS_UDP_DIR)/portable/Compiler/GCC
 
 CFLAGS = \
 	$(WARNINGS) $(INCLUDES) \
@@ -113,7 +123,9 @@ PORT_OBJ = $(PORT_SRC:.c=.o)
 DEMO_OBJ = $(DEMO_SRC:.c=.o)
 PORT_ASM_OBJ = $(PORT_ASM:.S=.o)
 CRT0_OBJ = $(CRT0:.S=.o)
-OBJS = $(CRT0_OBJ) $(PORT_ASM_OBJ) $(PORT_OBJ) $(RTOS_OBJ) $(DEMO_OBJ) $(APP_OBJ)
+PLUS_UDP_OBJ = $(PLUS_UDP_SRC:.c=.o)
+PORT_UDP_OBJ = $(PORT_UDP_SRC:.c=.o)
+OBJS = $(CRT0_OBJ) $(PORT_ASM_OBJ) $(PORT_OBJ) $(RTOS_OBJ) $(DEMO_OBJ) $(APP_OBJ) $(PLUS_UDP_OBJ) $(PORT_UDP_OBJ)
 
 LDFLAGS	 = -T arch/link.ld -nostartfiles -static -nostdlib
 LIBS	 = -L$(CCPATH)/lib/gcc/$(TARGET)/$(GCCVER) \
