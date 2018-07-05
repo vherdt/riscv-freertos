@@ -160,5 +160,8 @@ force_true:
 #-------------------------------------------------------------
 sim: all
 	riscv-vp $(PROG).elf --memory-start=2147483648
+	
+debug: all
+	riscv-vp $(PROG).elf --debug-mode --memory-start=2147483648
 
 

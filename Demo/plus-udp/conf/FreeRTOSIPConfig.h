@@ -33,10 +33,11 @@ from the FreeRTOSIPConfig.h configuration header file. */
 
 #define ipconfigUDP_TASK_STACK_SIZE_WORDS 1024
 #define ipconfigUDP_TASK_PRIORITY (configMAX_PRIORITIES - 1)
+#define ipconfigBYTE_ORDER FREERTOS_LITTLE_ENDIAN
 
 
 #ifndef ipconfigUSE_NETWORK_EVENT_HOOK
-	#define ipconfigUSE_NETWORK_EVENT_HOOK 0
+	#define ipconfigUSE_NETWORK_EVENT_HOOK 1
 #endif
 
 #ifndef ipconfigMAX_SEND_BLOCK_TIME_TICKS
@@ -154,7 +155,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifndef ipconfigETHERNET_DRIVER_CHECKS_UDP_CHECKSUM
-	#define ipconfigETHERNET_DRIVER_CHECKS_UDP_CHECKSUM 0
+	#define ipconfigETHERNET_DRIVER_CHECKS_UDP_CHECKSUM 1
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */

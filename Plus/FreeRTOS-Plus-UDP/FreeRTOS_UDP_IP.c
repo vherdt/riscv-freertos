@@ -1467,6 +1467,8 @@ const xIPHeader_t * pxIPHeader;
 xUDPPacket_t *pxUDPPacket;
 BaseType_t xChecksumIsCorrect;
 
+    printf("prvProcessIPPacket\n");
+
 	pxIPHeader = &( pxIPPacket->xIPHeader );
 
 	/* Is the packet for this node? */
@@ -1504,6 +1506,8 @@ BaseType_t xChecksumIsCorrect;
 						break;
 
 					case ipPROTOCOL_UDP :
+					
+    					printf("ipPROTOCOL_UDP\n");
 
 						/* The IP packet contained a UDP frame. */
 						pxUDPPacket = ( xUDPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
@@ -1514,6 +1518,8 @@ BaseType_t xChecksumIsCorrect;
 						pxNetworkBuffer->xDataLength = FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) - sizeof( xUDPHeader_t );
 						pxNetworkBuffer->usPort = pxUDPPacket->xUDPHeader.usSourcePort;
 						pxNetworkBuffer->ulIPAddress = pxUDPPacket->xIPHeader.ulSourceIPAddress;
+						
+						//printf("Checksum %u\n", prvGenerateUDPChecksum( pxUDPPacket, ipconfigETHERNET_DRIVER_CHECKS_UDP_CHECKSUM ));
 
 						/* Is the checksum required? */
 						if( pxUDPPacket->xUDPHeader.usChecksum == 0 )
@@ -1532,6 +1538,8 @@ BaseType_t xChecksumIsCorrect;
 						/* Is the checksum correct? */
 						if( xChecksumIsCorrect == pdTRUE )
 						{
+    						printf("xProcessReceivedUDPPacket\n");
+    						
 							/* Pass the packet payload to the UDP sockets
 							implementation. */
 							if( xProcessReceivedUDPPacket( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort ) == pdPASS )
