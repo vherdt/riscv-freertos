@@ -96,7 +96,7 @@ PLUS_FAT_SRC =  \
     $(FREERTOS_PLUS_FAT_DIR)/ff_sys.c \
     $(FREERTOS_PLUS_FAT_DIR)/ff_time.c \
     $(FREERTOS_PLUS_FAT_DIR)/ff_stdio.c \
-    $(FREERTOS_PLUS_FAT_DIR)/portable/common/ff_ramdisk.c
+    $(FREERTOS_PLUS_FAT_DIR)/portable/RiscV-VP/ff_mmap.c
     
     #$(FREERTOS_PLUS_FAT_DIR)/ff_dev_support.c \
     
@@ -115,7 +115,7 @@ INCLUDES = \
 	-I../Common/include \
 	-I$(FREERTOS_SOURCE_DIR)/portable/GCC/RISCV \
 	-I$(FREERTOS_PLUS_FAT_DIR)/include \
-	-I$(FREERTOS_PLUS_FAT_DIR)/portable/common
+	-I$(FREERTOS_PLUS_FAT_DIR)/portable/RiscV-VP
 
 CFLAGS = \
 	$(WARNINGS) $(INCLUDES) \
