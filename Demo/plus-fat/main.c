@@ -14,7 +14,7 @@
 /* FAT+Plus includes */
 #include <ff_headers.h>
 #include <ff_stdio.h>
-#include <ff_ramdisk.h>
+#include <ff_mmap.h>
 
 /* RISCV includes */
 #include "arch/syscalls.h"
@@ -25,10 +25,6 @@
 /* The number and size of sectors that will make up the MRAM disk. */
 #define mainRAM_DISK_SECTOR_SIZE	512UL
 #define mainRAM_DISK_SECTORS		( ( 0x0FFFFFFF ) / mainRAM_DISK_SECTOR_SIZE ) /* 5M bytes. */
-#define mainIO_MANAGER_CACHE_SIZE	( 5UL * mainRAM_DISK_SECTOR_SIZE )
-
-/* Where the RAM disk is mounted. */
-#define mainRAM_DISK_NAME			"/mram"
 
 static uint8_t* const MRAM_START_ADDR = (uint8_t* const)(0x60000000);
 
@@ -76,12 +72,26 @@ static void prvCreateDiskAndExampleFiles( void *pvParameters )
 {
 	(void) pvParameters;
 	FF_Disk_t *pxDisk = NULL;
-	FF_RAMDiskInit( mainRAM_DISK_NAME, MRAM_START_ADDR, mainRAM_DISK_SECTORS, mainIO_MANAGER_CACHE_SIZE );
-	/* Create the RAM disk. */
+	FF_MMAPDiskInit(MRAM_START_ADDR, mainRAM_DISK_SECTORS);
 	configASSERT( pxDisk );
 
+	if(FF_Mount(pxDisk, 0) != FF_ERR_NONE)
+	{
+		printf("Could not mount FS. Partitioning and formatting...\n");
+		if(FF_MMAPPartitionAndFormatDisk(pxDisk) != FF_ERR_NONE)
+		{
+			printf("Could not partition FS.\n");
+			return;
+		}
+		if(FF_Mount(pxDisk, 0) != FF_ERR_NONE)
+		{
+			printf("Could not mount freshly formatted FS.\n");
+			return;
+		}
+	}
+
 	/* Print out information on the disk. */
-	FF_RAMDiskShowPartition( pxDisk );
+	FF_MMAPDiskShowPartition( pxDisk );
 }
 
 
