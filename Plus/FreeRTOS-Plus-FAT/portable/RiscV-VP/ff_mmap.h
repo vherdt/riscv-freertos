@@ -66,7 +66,7 @@ extern "C" {
 /* Create a RAM disk, supplying enough memory to hold N sectors of 512 bytes each */
 FF_Disk_t *FF_MMAPDiskInit( uint8_t *pucDataBuffer, uint32_t ulSectorCount);
 
-FF_Error_t FF_MMAPPartitionAndFormatDisk( FF_Disk_t *pxDisk );
+FF_Error_t FF_MMAPPartitionAndFormatDisk( FF_Disk_t *pxDisk, const char* label);
 
 /* Release all resources */
 BaseType_t FF_MMAPRelease( FF_Disk_t *pxDisk );

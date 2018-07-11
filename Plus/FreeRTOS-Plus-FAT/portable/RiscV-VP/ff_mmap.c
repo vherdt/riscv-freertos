@@ -101,9 +101,9 @@ In this example:
 */
 FF_Disk_t *FF_MMAPDiskInit( uint8_t *pucDataBuffer, uint32_t ulSectorCount)
 {
-FF_Error_t xError;
-FF_Disk_t *pxDisk = NULL;
-FF_CreationParameters_t xParameters;
+	FF_Error_t xError;
+	FF_Disk_t *pxDisk = NULL;
+	FF_CreationParameters_t xParameters;
 
 	/* Attempt to allocated the FF_Disk_t structure. */
 	pxDisk = ( FF_Disk_t * ) pvPortMalloc( sizeof( FF_Disk_t ) );
@@ -135,6 +135,7 @@ FF_CreationParameters_t xParameters;
 	/* Create the IO manager that will be used to control the RAM disk. */
 	memset( &xParameters, '\0', sizeof( xParameters ) );
 	xParameters.pucCacheMemory = NULL;
+	xParameters.ulMemorySize = 2 * mmSECTOR_SIZE;
 	xParameters.ulSectorSize = mmSECTOR_SIZE;
 	xParameters.fnWriteBlocks = prvWriteRAM;
 	xParameters.fnReadBlocks = prvReadRAM;
@@ -148,19 +149,24 @@ FF_CreationParameters_t xParameters;
 
 	pxDisk->pxIOManager = FF_CreateIOManger( &xParameters, &xError );
 
-	if( ( pxDisk->pxIOManager != NULL ) && ( FF_isERR( xError ) == pdFALSE ) )
+	if( ( pxDisk->pxIOManager == NULL ) || ( FF_isERR( xError ) == pdTRUE ) )
 	{
-		/* Record that the MM disk has been initialised. */
-		pxDisk->xStatus.bIsInitialised = pdTRUE;
-	}
+		FF_PRINTF( "FF_MMAPDiskInit: FF_CreateIOManger: %s\n", ( const char * ) FF_GetErrMessage( xError ) );
 
+		/* The disk structure was allocated, but the disk's IO manager could
+		not be allocated, so free the disk again. */
+		FF_MMAPRelease( pxDisk );
+		return NULL;
+	}
+	/* Record that the MM disk has been initialised. */
+	pxDisk->xStatus.bIsInitialised = pdTRUE;
 	return pxDisk;
 }
 
 
 /*-----------------------------------------------------------*/
 
-FF_Error_t FF_MMAPPartitionAndFormatDisk( FF_Disk_t *pxDisk )
+FF_Error_t FF_MMAPPartitionAndFormatDisk( FF_Disk_t *pxDisk, const char* label)
 {
 FF_PartitionParameters_t xPartition;
 FF_Error_t xError;
@@ -179,7 +185,7 @@ FF_Error_t xError;
 	if( FF_isERR( xError ) == pdFALSE )
 	{
 		/* Format the partition. */
-		xError = FF_Format( pxDisk, mmPARTITION_NUMBER, pdTRUE, pdTRUE );
+		xError = FF_Format( pxDisk, mmPARTITION_NUMBER, pdTRUE, pdTRUE, label);
 		FF_PRINTF( "FF_MMAPDiskInit: FF_Format: %s\n", ( const char * ) FF_GetErrMessage( xError ) );
 	}
 
@@ -363,13 +369,13 @@ BaseType_t xReturn = pdPASS;
 
 		/* It is better not to use the 64-bit format such as %Lu because it
 		might not be implemented. */
-		FF_PRINTF( "Partition Nr   %8u\n", pxDisk->xStatus.bPartitionNumber );
-		FF_PRINTF( "Type           %8u (%s)\n", pxIOManager->xPartition.ucType, pcTypeName );
-		FF_PRINTF( "VolLabel       '%8s' \n", pxIOManager->xPartition.pcVolumeLabel );
-		FF_PRINTF( "TotalSectors   %8lu\n", pxIOManager->xPartition.ulTotalSectors );
-		FF_PRINTF( "SecsPerCluster %8lu\n", pxIOManager->xPartition.ulSectorsPerCluster );
-		FF_PRINTF( "Size           %8lu MB\n", ulTotalSizeMB );
-		FF_PRINTF( "FreeSize       %8lu MB ( %d perc free )\n", ulFreeSizeMB, iPercentageFree );
+		printf( "Partition Nr   %8u\n", pxDisk->xStatus.bPartitionNumber );
+		printf( "Type           %8u (%s)\n", pxIOManager->xPartition.ucType, pcTypeName );
+		printf( "VolLabel       '%.8s' \n", pxIOManager->xPartition.pcVolumeLabel );
+		printf( "TotalSectors   %8lu\n", pxIOManager->xPartition.ulTotalSectors );
+		printf( "SecsPerCluster %8lu\n", pxIOManager->xPartition.ulSectorsPerCluster );
+		printf( "Size           %8lu MB\n", ulTotalSizeMB );
+		printf( "FreeSize       %8lu MB ( %d perc free )\n", ulFreeSizeMB, iPercentageFree );
 	}
 
 	return xReturn;

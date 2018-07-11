@@ -66,7 +66,6 @@
 #include "ff_headers.h"
 #include <string.h>
 
-
 #if ffconfigFAT_USES_STAT
 	/* This module make use of a buffer caching called 'FF_FATBuffers_t'.
 	 * The struct below may gather statistics about its usage: hits/misses.

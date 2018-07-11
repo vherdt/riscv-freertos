@@ -172,7 +172,7 @@ uint32_t ulReturn;
 }
 
 /*_RB_ Candidate for splitting into multiple functions? */
-FF_Error_t FF_Format( FF_Disk_t *pxDisk, BaseType_t xPartitionNumber, BaseType_t xPreferFAT16, BaseType_t xSmallClusters )
+FF_Error_t FF_Format( FF_Disk_t *pxDisk, BaseType_t xPartitionNumber, BaseType_t xPreferFAT16, BaseType_t xSmallClusters, const char* xVolumeLabel)
 {
 uint32_t ulHiddenSectors;              /* Space from MBR and partition table */
 const uint32_t ulFSInfo = 1;           /* Sector number of FSINFO structure within the reserved area */
@@ -368,6 +368,16 @@ FF_IOManager_t *pxIOManager = pxDisk->pxIOManager;
 
 		FF_putLong (pucSectorBuffer, OFS_BPB_TotSec32_32, ulSectorCount ); /* 0x020 / >= 0x10000 */
 
+		char volumeLabel[11];
+		if(xVolumeLabel == NULL)
+		{
+			memcpy(volumeLabel, "NO_NAME_SET", 11);
+		}
+		else
+		{
+			strncpy(volumeLabel, xVolumeLabel, 11);
+		}
+
 		if( ucFATType == FF_T_FAT32 )
 		{
 			FF_putLong( pucSectorBuffer,  OFS_BPB_32_FATSz32_32, ulSectorsPerFAT );      /* 0x24 / Only when BPB_FATSz16 = 0 */
@@ -379,7 +389,7 @@ FF_IOManager_t *pxIOManager = pxDisk->pxIOManager;
 			FF_putChar( pucSectorBuffer,  OFS_BPB_32_DrvNum_8, 0 );                                  /* 0x40 / n.a. */
 			FF_putChar( pucSectorBuffer,  OFS_BPB_32_BootSig_8, 0x29 );                              /* 0x42 / n.a. */
 			FF_putLong( pucSectorBuffer,  OFS_BPB_32_VolID_32, ( uint32_t ) ulVolumeID );            /* 0x43 / "unique" number */
-			memcpy( pucSectorBuffer + OFS_BPB_32_VolLab_88, "MY NAME    ", 11 );    /* 0x47 / "NO NAME    " */
+			memcpy( pucSectorBuffer + OFS_BPB_32_VolLab_88, volumeLabel, 11 );    /* 0x47 / "NO NAME    " */
 			memcpy( pucSectorBuffer + OFS_BPB_32_FilSysType_64, "FAT32   ", 8 );    /* 0x52 / "FAT12   " */
 		}
 		else
@@ -391,7 +401,7 @@ FF_IOManager_t *pxIOManager = pxDisk->pxIOManager;
 
 			FF_putShort( pucSectorBuffer, OFS_BPB_FATSz16_16, ulSectorsPerFAT );		/* 0x16 */
 
-			memcpy( pucSectorBuffer + OFS_BPB_16_BS_VolLab_88, "MY NAME    ", 11 );            /* 0x02B / "NO NAME    " */
+			memcpy( pucSectorBuffer + OFS_BPB_16_BS_VolLab_88, volumeLabel, 11 );            /* 0x02B / "NO NAME    " */
 			memcpy( pucSectorBuffer + OFS_BPB_16_FilSysType_64, "FAT16   ", 8 );           /* 0x036 / "FAT12   " */
 		}
 
@@ -475,7 +485,7 @@ FF_IOManager_t *pxIOManager = pxDisk->pxIOManager;
 		}
 #endif	/* ffconfigTIME_SUPPORT */
 
-		memcpy (pucSectorBuffer, "MY_DISK    ", 11);
+		memcpy (pucSectorBuffer, volumeLabel, 11);
 		pucSectorBuffer[11] = FF_FAT_ATTR_VOLID;
 
 		{
