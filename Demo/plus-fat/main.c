@@ -24,12 +24,13 @@
 
 /* The number and size of sectors that will make up the MRAM disk. */
 #define mainRAM_DISK_SECTOR_SIZE	512UL
-#define mainRAM_DISK_SECTORS		( ( 0x0FFFFFFF ) / mainRAM_DISK_SECTOR_SIZE ) /* 5M bytes. */
+#define mainRAM_DISK_SECTORS		( ( 0x01000000 ) / mainRAM_DISK_SECTOR_SIZE )
 
 static uint8_t* const MRAM_START_ADDR = (uint8_t* const)(0x60000000);
 
 #define mainTASK_PRIORITY					( tskIDLE_PRIORITY + 2 )
 #define	mainSTACK_SIZE						1400
+#define mainDisklabel						"/mram"
 
 void vLoggingPrintf( const char *pcFormat, ... );
 
@@ -71,14 +72,13 @@ void vLoggingPrintf( const char *pcFormat, ... )
 static void prvCreateDiskAndExampleFiles( void *pvParameters )
 {
 	(void) pvParameters;
-	FF_Disk_t *pxDisk = NULL;
-	FF_MMAPDiskInit(MRAM_START_ADDR, mainRAM_DISK_SECTORS);
+	FF_Disk_t *pxDisk = FF_MMAPDiskInit(MRAM_START_ADDR, mainRAM_DISK_SECTORS);
 	configASSERT( pxDisk );
 
 	if(FF_Mount(pxDisk, 0) != FF_ERR_NONE)
 	{
 		printf("Could not mount FS. Partitioning and formatting...\n");
-		if(FF_MMAPPartitionAndFormatDisk(pxDisk) != FF_ERR_NONE)
+		if(FF_MMAPPartitionAndFormatDisk(pxDisk, mainDisklabel+1) != FF_ERR_NONE)
 		{
 			printf("Could not partition FS.\n");
 			return;
@@ -89,9 +89,38 @@ static void prvCreateDiskAndExampleFiles( void *pvParameters )
 			return;
 		}
 	}
+	FF_FS_Add( mainDisklabel, pxDisk );
 
 	/* Print out information on the disk. */
 	FF_MMAPDiskShowPartition( pxDisk );
+
+	FF_Error_t err;
+	FF_FILE* file = FF_Open(pxDisk->pxIOManager, "/test.txt", FF_MODE_READ | FF_MODE_WRITE | FF_MODE_CREATE, &err);
+	if(file == NULL || err != FF_ERR_NONE)
+	{
+		printf("Open file failed.\n");
+		return;
+	}
+
+	char buf[100] = {0};
+	int ret;
+	while((ret = FF_Read(file, 100, 1, (uint8_t*)buf)) > 0)
+	{
+		printf("%.*s", ret * 100, buf);
+	}
+	printf("\n");
+
+	memset(buf, 0, 100);
+	strcpy(buf, "Deine Oma findet Hasen doof. " __DATE__ __TIME__ "\n");
+	FF_Write(file, strlen(buf), 1, (uint8_t*) buf);
+
+	FF_Close(file);
+
+	FF_Unmount( pxDisk );
+
+	FF_MMAPRelease( pxDisk );
+
+	printf("Finished.\n");
 }
 
 
@@ -109,6 +138,7 @@ void vApplicationMallocFailedHook( void )
 	FreeRTOSConfig.h, and the xPortGetFreeHeapSize() API function can be used
 	to query the size of free heap space that remains (although it does not
 	provide information on how the remaining heap might be fragmented). */
+	printf("MALLOC FAILED!\n");
 	taskDISABLE_INTERRUPTS();
 	for( ;; );
 }
@@ -130,9 +160,9 @@ void vApplicationIdleHook( void )
 
 void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
 {
-	( void ) pcTaskName;
 	( void ) pxTask;
 
+	printf("Swag overflow of Task %s!\n", pcTaskName);
 	/* Run time stack overflow checking is performed if
 	configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
 	function is called if a stack overflow is detected. */
