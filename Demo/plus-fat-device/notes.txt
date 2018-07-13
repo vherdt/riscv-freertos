@@ -1,0 +1,3 @@
+use with either files or devices
+e.g. :
+riscv-vp riscv-main.elf --flash-device /dev/sdc
