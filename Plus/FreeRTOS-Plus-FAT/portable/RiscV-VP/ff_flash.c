@@ -67,39 +67,43 @@
 
 /* FreeRTOS+FAT includes. */
 #include "ff_headers.h"
-#include "ff_mmap.h"
+#include "ff_flash.h"
 #include "ff_sys.h"
 
-#define flashHIDDEN_SECTOR_COUNT		8
+#define flashHIDDEN_SECTOR_COUNT	8
 #define flashPRIMARY_PARTITIONS		1
 #define flashHUNDRED_64_BIT			100ULL
-#define flashSECTOR_SIZE				512UL
-#define flashPARTITION_NUMBER			0 /* Only a single partition is used. */
-#define flashBYTES_PER_MB				( 1024ull * 1024ull )
+#define flashSECTOR_SIZE			512UL
+#define flashPARTITION_NUMBER		0 /* Only a single partition is used. */
+#define flashBYTES_PER_MB			( 1024ull * 1024ull )
 #define flashSECTORS_PER_MB			( flashBYTES_PER_MB / 512ull )
 
-/* Used as a magic number to indicate that an FF_Disk_t structure is a Memory Mapped disk. */
-#define flashSIGNATURE					0x1337BEEF
+/* Used as a magic number to indicate that an FF_Disk_t structure is a cool disk. */
+#define flashSIGNATURE				0xBEEF0815
+
+//From flash-controller
+static const unsigned int BLOCKSIZE = 512;
+static const unsigned int FLASH_ADDR_REG = 0;
+static const unsigned int FLASH_SIZE_REG = sizeof(uint64_t);
+static const unsigned int DATA_ADDR = FLASH_SIZE_REG + sizeof(uint64_t);
+//static constexpr unsigned int ADDR_SPACE = DATA_ADDR + BLOCKSIZE;
+static uint8_t* volatile const FLASH_CONTROLLER = (uint8_t* volatile const)(0x71000000);
 
 /*-----------------------------------------------------------*/
 
-static int32_t prvWriteRAM( uint8_t *pucBuffer, uint32_t ulSectorNumber, uint32_t ulSectorCount, FF_Disk_t *pxDisk );
+static int32_t prvWriteFlash( uint8_t *pucBuffer, uint32_t ulSectorNumber, uint32_t ulSectorCount, FF_Disk_t *pxDisk );
 
-static int32_t prvReadRAM( uint8_t *pucBuffer, uint32_t ulSectorNumber, uint32_t ulSectorCount, FF_Disk_t *pxDisk );
+static int32_t prvReadFlash( uint8_t *pucBuffer, uint32_t ulSectorNumber, uint32_t ulSectorCount, FF_Disk_t *pxDisk );
+
+static void prvSetTargetBlock(uint64_t block);
+
+static uint64_t prvGetSectorCount( void );
+
+static void prvFlushFlash( void );
 
 /*-----------------------------------------------------------*/
 
-/* This is the prototype of the function used to initialise the RAM disk driver.
-Other media drivers do not have to have the same prototype.
-
-In this example:
- + pcName is the name to give the disk within FreeRTOS+FAT's virtual file system.
- + pucDataBuffer is the start of the RAM to use as the disk.
- + ulSectorCount is effectively the size of the disk, each sector is 512 bytes.
- + xIOManagerCacheSize is the size of the IO manager's cache, which must be a
-   multiple of the sector size, and at least twice as big as the sector size.
-*/
-FF_Disk_t *FF_MMAPDiskInit( uint8_t *pucDataBuffer, uint32_t ulSectorCount)
+FF_Disk_t* FF_FlashDiskInit( void )
 {
 	FF_Error_t xError;
 	FF_Disk_t *pxDisk = NULL;
@@ -118,11 +122,8 @@ FF_Disk_t *FF_MMAPDiskInit( uint8_t *pucDataBuffer, uint32_t ulSectorCount)
 	memset( pxDisk, '\0', sizeof( FF_Disk_t ) );
 
 	/* The pvTag member of the FF_Disk_t structure allows the structure to be
-	extended to also include media specific parameters.  The only media
-	specific data that needs to be stored in the FF_Disk_t structure for a
-	RAM disk is the location of the RAM buffer itself - so this is stored
-	directly in the FF_Disk_t's pvTag member. */
-	pxDisk->pvTag = ( void * ) pucDataBuffer;
+	extended to also include media specific parameters. */
+	pxDisk->pvTag = ( void * ) FLASH_CONTROLLER;
 
 	/* The signature is used by the disk read and disk write functions to
 	ensure the disk being accessed is a RAM disk. */
@@ -130,15 +131,15 @@ FF_Disk_t *FF_MMAPDiskInit( uint8_t *pucDataBuffer, uint32_t ulSectorCount)
 
 	/* The number of sectors is recorded for bounds checking in the read and
 	write functions. */
-	pxDisk->ulNumberOfSectors = ulSectorCount;
+	pxDisk->ulNumberOfSectors = prvGetSectorCount();
 
 	/* Create the IO manager that will be used to control the RAM disk. */
 	memset( &xParameters, '\0', sizeof( xParameters ) );
 	xParameters.pucCacheMemory = NULL;
 	xParameters.ulMemorySize = 2 * flashSECTOR_SIZE;
 	xParameters.ulSectorSize = flashSECTOR_SIZE;
-	xParameters.fnWriteBlocks = prvWriteRAM;
-	xParameters.fnReadBlocks = prvReadRAM;
+	xParameters.fnWriteBlocks = prvWriteFlash;
+	xParameters.fnReadBlocks = prvReadFlash;
 	xParameters.pxDisk = pxDisk;
 
 	/* Driver is reentrant so xBlockDeviceIsReentrant can be set to pdTRUE.
@@ -151,11 +152,11 @@ FF_Disk_t *FF_MMAPDiskInit( uint8_t *pucDataBuffer, uint32_t ulSectorCount)
 
 	if( ( pxDisk->pxIOManager == NULL ) || ( FF_isERR( xError ) == pdTRUE ) )
 	{
-		FF_PRINTF( "FF_MMAPDiskInit: FF_CreateIOManger: %s\n", ( const char * ) FF_GetErrMessage( xError ) );
+		FF_PRINTF( "FF_FLASHDiskInit: FF_CreateIOManger: %s\n", ( const char * ) FF_GetErrMessage( xError ) );
 
 		/* The disk structure was allocated, but the disk's IO manager could
 		not be allocated, so free the disk again. */
-		FF_MMAPRelease( pxDisk );
+		FF_FlashRelease( pxDisk );
 		return NULL;
 	}
 	/* Record that the MM disk has been initialised. */
@@ -166,7 +167,7 @@ FF_Disk_t *FF_MMAPDiskInit( uint8_t *pucDataBuffer, uint32_t ulSectorCount)
 
 /*-----------------------------------------------------------*/
 
-FF_Error_t FF_MMAPPartitionAndFormatDisk( FF_Disk_t *pxDisk, const char* label)
+FF_Error_t FF_FlashPartitionAndFormatDisk( FF_Disk_t *pxDisk, const char* label)
 {
 FF_PartitionParameters_t xPartition;
 FF_Error_t xError;
@@ -193,8 +194,10 @@ FF_Error_t xError;
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t FF_MMAPRelease( FF_Disk_t *pxDisk )
+BaseType_t FF_FlashRelease( FF_Disk_t *pxDisk )
 {
+	prvFlushFlash();
+
 	if( pxDisk != NULL )
 	{
 		pxDisk->ulSignature = 0;
@@ -211,7 +214,7 @@ BaseType_t FF_MMAPRelease( FF_Disk_t *pxDisk )
 }
 /*-----------------------------------------------------------*/
 
-static int32_t prvReadRAM( uint8_t *pucDestination, uint32_t ulSectorNumber, uint32_t ulSectorCount, FF_Disk_t *pxDisk )
+static int32_t prvReadFlash( uint8_t *pucDestination, uint32_t ulSectorNumber, uint32_t ulSectorCount, FF_Disk_t *pxDisk )
 {
 int32_t lReturn;
 uint8_t *pucSource;
@@ -241,17 +244,13 @@ uint8_t *pucSource;
 		}
 		else
 		{
-			/* Obtain the pointer to the RAM buffer being used as the disk. */
+			//Obtain Flash controller base address
 			pucSource = ( uint8_t * ) pxDisk->pvTag;
-
-			/* Move to the start of the sector being read. */
-			pucSource += ( flashSECTOR_SIZE * ulSectorNumber );
-
-			/* Copy the data from the disk.  As this is a RAM disk this can be
-			done using memcpy(). */
-			memcpy( ( void * ) pucDestination,
-					( void * ) pucSource,
-					( size_t ) ( ulSectorCount * flashSECTOR_SIZE ) );
+			for(uint16_t block = ulSectorNumber; block < ulSectorNumber + ulSectorCount; block++)
+			{
+				prvSetTargetBlock(block);
+				memcpy(pucDestination, pucSource + DATA_ADDR, BLOCKSIZE);
+			}
 
 			lReturn = FF_ERR_NONE;
 		}
@@ -265,7 +264,7 @@ uint8_t *pucSource;
 }
 /*-----------------------------------------------------------*/
 
-static int32_t prvWriteRAM( uint8_t *pucSource, uint32_t ulSectorNumber, uint32_t ulSectorCount, FF_Disk_t *pxDisk )
+static int32_t prvWriteFlash( uint8_t *pucSource, uint32_t ulSectorNumber, uint32_t ulSectorCount, FF_Disk_t *pxDisk )
 {
 int32_t lReturn = FF_ERR_NONE;
 uint8_t *pucDestination;
@@ -295,17 +294,13 @@ uint8_t *pucDestination;
 		}
 		else
 		{
-			/* Obtain the location of the RAM being used as the disk. */
+			//Obtain Flash controller base address
 			pucDestination = ( uint8_t * ) pxDisk->pvTag;
-
-			/* Move to the sector being written to. */
-			pucDestination += ( flashSECTOR_SIZE * ulSectorNumber );
-
-			/* Write to the disk.  As this is a RAM disk the write can use a
-			memcpy(). */
-			memcpy( ( void * ) pucDestination,
-					( void * ) pucSource,
-					( size_t ) ulSectorCount * ( size_t ) flashSECTOR_SIZE );
+			for(uint16_t block = ulSectorNumber; block < ulSectorNumber + ulSectorCount; block++)
+			{
+				prvSetTargetBlock(block);
+				memcpy(pucDestination + DATA_ADDR, pucSource, BLOCKSIZE);
+			}
 
 			lReturn = FF_ERR_NONE;
 		}
@@ -319,7 +314,29 @@ uint8_t *pucDestination;
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t FF_MMAPDiskShowPartition( FF_Disk_t *pxDisk )
+static void prvSetTargetBlock(uint64_t block)
+{
+	memcpy(FLASH_CONTROLLER + FLASH_ADDR_REG, &block, sizeof(uint64_t));
+}
+
+static uint64_t prvGetSectorCount( void )
+{
+	uint64_t flashNumOfBlocks = 0;
+	memcpy(&flashNumOfBlocks, FLASH_CONTROLLER + FLASH_SIZE_REG, sizeof(uint64_t));
+	return flashNumOfBlocks;
+}
+
+static void prvFlushFlash( void )
+{
+	uint8_t dummy;
+	prvSetTargetBlock(0);
+	dummy = *(uint8_t*)(FLASH_CONTROLLER + DATA_ADDR);
+	prvSetTargetBlock(1);
+	dummy = *(uint8_t*)(FLASH_CONTROLLER + DATA_ADDR);
+	(void) dummy;
+}
+
+BaseType_t FF_FlashDiskShowPartition( FF_Disk_t *pxDisk )
 {
 FF_Error_t xError;
 uint64_t ullFreeSectors;
