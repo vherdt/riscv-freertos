@@ -1,6 +1,8 @@
 // based on https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_UDP/FreeRTOS_UDP_IP_Embedded_Ethernet_Tutorial.shtml
 // and on https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_UDP/API/vApplicationIPNetworkEventHook.shtml
 
+#include <inttypes.h>
+
 /* Kernel includes */
 #include "FreeRTOS.h"
 #include "task.h"
@@ -60,7 +62,7 @@ static void vSendUsingStandardInterface( void *pvParameters )
 {
 xSocket_t xSocket;
 struct freertos_sockaddr xDestinationAddress;
-uint8_t cString[ 50 ];
+int8_t cString[ 50 ];
 uint32_t ulCount = 0UL;
 const TickType_t x1000ms = 1000UL / portTICK_PERIOD_MS;
 long lBytes;
@@ -84,7 +86,7 @@ long lBytes;
     {
         /* Create the string that is sent. */
         sprintf( cString,
-                 "Standard send message number %lu\r\n",
+                 "Standard send message number %" PRIu32 "\r\n",
                  ulCount );
                  
         printf("[freertos] send:\n");
@@ -168,9 +170,9 @@ xSocket_t xListeningSocket;
 /* Define the network addressing.  These parameters will be used if either
 ipconfigUDE_DHCP is 0 or if ipconfigUSE_DHCP is 1 but DHCP auto configuration
 failed. */
-static const uint8_t ucIPAddress[ 4 ] = { 192, 168, 0, 200 };
-static const uint8_t ucNetMask[ 4 ] = { 255, 255, 255, 255 };
-static const uint8_t ucGatewayAddress[ 4 ] = { 192, 168, 0, 1 };
+static const uint8_t ucIPAddress[ 4 ] = { 0, 0, 0, 0 };
+static const uint8_t ucNetMask  [ 4 ] = { 255, 255, 255, 0 };
+static const uint8_t ucGatewayAddress[ 4 ] = { 0, 0, 0, 0 };
 
 /* The following is the address of an OpenDNS server. */
 static const uint8_t ucDNSServerAddress[ 4 ] = { 208, 67, 222, 222 };
@@ -179,7 +181,38 @@ static const uint8_t ucDNSServerAddress[ 4 ] = { 208, 67, 222, 222 };
 normally be read from an EEPROM and not hard coded (in real deployed
 applications).*/
 //static uint8_t ucMACAddress[ 6 ] = { 0x54, 0xe1, 0xad, 0x74, 0x33, 0xfd };
-static uint8_t ucMACAddress[ 6 ] = { 0x72, 0x5c, 0xb4, 0x2c, 0xac, 0x4a };
+//static uint8_t ucMACAddress[ 6 ] = { 0x72, 0x5c, 0xb4, 0x2c, 0xac, 0x4a };
+static uint8_t ucMACAddress[ 6 ] = { 0x00, 0x11, 0x11, 0x11, 0x11, 0x11 };
+
+void printIP(uint32_t ip)
+{
+	uint8_t* c = (uint8_t*)&ip;
+	for(uint8_t p = 0; p < 4; p++)
+	{
+		//printf("%s%3u", p > 0 ? "." : "", c[p]);
+		printf(".%3u", c[p]);
+	}
+}
+
+void prvIPStatusprinter(void *pvParameters)
+{
+	while(1)
+	{
+		printf("I am alive\n");
+		uint32_t iPAddress, netMask, gateway, dnsServer;
+		FreeRTOS_GetAddressConfiguration(&iPAddress, &netMask, &gateway, &dnsServer);
+		printf(  "I am     ");
+		printIP(iPAddress);
+		printf(" ,   netMask ");
+		printIP(netMask);
+		printf("\ngateway: ");
+		printIP(gateway);
+		printf(", dnsServer: ");
+		printIP(dnsServer);
+		printf("\n");
+		vTaskDelay(250 / portTICK_PERIOD_MS);
+	}
+}
 
 int main( void )
 {
@@ -195,6 +228,7 @@ int main( void )
     /*
      * Other RTOS tasks can be created here.
      */
+    xTaskCreate( prvIPStatusprinter, "Statusprinter", ipconfigUDP_TASK_STACK_SIZE_WORDS, NULL, tskIDLE_PRIORITY+1, NULL );
 
     /* Start the RTOS scheduler. */
     vTaskStartScheduler();
@@ -205,7 +239,6 @@ int main( void )
     timer tasks to be created. */
     exit(0);
 }
-
 
 void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 {
