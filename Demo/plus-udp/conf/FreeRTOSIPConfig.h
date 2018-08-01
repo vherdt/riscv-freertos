@@ -45,7 +45,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifndef ipconfigARP_CACHE_ENTRIES
-	#define ipconfigARP_CACHE_ENTRIES		10
+	#define ipconfigARP_CACHE_ENTRIES		100
 #endif
 
 #ifndef ipconfigMAX_ARP_RETRANSMISSIONS
@@ -155,7 +155,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifndef ipconfigETHERNET_DRIVER_CHECKS_UDP_CHECKSUM
-	#define ipconfigETHERNET_DRIVER_CHECKS_UDP_CHECKSUM 1
+	#define ipconfigETHERNET_DRIVER_CHECKS_UDP_CHECKSUM 0
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
