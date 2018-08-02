@@ -48,13 +48,13 @@ static volatile uint32_t * const ETHERNET_SEND_SIZE_REG_ADDR = (uint32_t * const
 
 
 size_t ReceiveSize( void ) {
-    printf("ReceiveSize()\n");
+    //printf("ReceiveSize()\n");
     return *ETHERNET_RECV_SIZE_REG_ADDR;
 }
 
 
 void ReceiveData( uint8_t *buf ) {
-    printf("RecvData dst=%u\n", (uint32_t)buf);
+    //printf("RecvData dst=%u\n", (uint32_t)buf);
     // assume that buf is large enough to hold ReceiveSize bytes
     *ETHERNET_RECV_DST_REG_ADDR = (uint32_t)buf;
     *ETHERNET_STATUS_REG_ADDR = ETHERNET_OPERATION_RECV;
@@ -62,7 +62,7 @@ void ReceiveData( uint8_t *buf ) {
 
 
 void SendData( uint8_t *buf, size_t num_bytes ) {
-    printf("SendData src=%u, size=%u\n", (uint32_t)buf, (uint32_t)num_bytes);
+    //printf("SendData src=%u, size=%u\n", (uint32_t)buf, (uint32_t)num_bytes);
     *ETHERNET_SEND_SRC_REG_ADDR = (uint32_t)buf;
     *ETHERNET_SEND_SIZE_REG_ADDR = (uint32_t)num_bytes;
     *ETHERNET_STATUS_REG_ADDR = ETHERNET_OPERATION_SEND;
@@ -94,7 +94,7 @@ static void prvEMACDeferredInterruptHandlerTask( void *pvParameters )
 
     for( ;; )
     {
-        printf("NetworkInterface Wait\n");
+        //printf("NetworkInterface Wait\n");
         
         /* Wait for the Ethernet MAC interrupt to indicate that another packet
         has been received.  It is assumed xEMACRxEventSemaphore is a counting
@@ -102,7 +102,7 @@ static void prvEMACDeferredInterruptHandlerTask( void *pvParameters )
         been created. */
         xSemaphoreTake( xEMACRxEventSemaphore, portMAX_DELAY );
         
-        printf("NetworkInterface Ready to Receive\n");
+        //printf("NetworkInterface Ready to Receive\n");
 
         /* See how much data was received.  Here it is assumed ReceiveSize() is
         a peripheral driver function that returns the number of bytes in the
@@ -125,14 +125,14 @@ static void prvEMACDeferredInterruptHandlerTask( void *pvParameters )
                 parameter. */
                 ReceiveData( pxNetworkBuffer->pucEthernetBuffer );
                 
-                printf("Receive Finished\n");
+                //printf("Receive Finished\n");
 
                 /* See if the data contained in the received Ethernet frame needs
                 to be processed. */
                 if( eConsiderFrameForProcessing( pxNetworkBuffer->pucEthernetBuffer )
                                                                       == eProcessBuffer )
                 {
-                    printf("Consider Frame For Processing\n");
+                    //printf("Consider Frame For Processing\n");
                     
                     /* The event about to be sent to the IP stack is an Rx event. */
                     xRxEvent.eEventType = eEthernetRxEvent;
@@ -144,7 +144,7 @@ static void prvEMACDeferredInterruptHandlerTask( void *pvParameters )
                     /* Send the data to the IP stack. */
                     if( xQueueSendToBack( xNetworkEventQueue, &xRxEvent, 0 ) == pdFALSE )
                     {
-                        printf("Message Rejected\n");
+                        //printf("Message Rejected\n");
                         
                         /* The buffer could not be sent to the IP task so the buffer
                         must be released. */
@@ -156,7 +156,7 @@ static void prvEMACDeferredInterruptHandlerTask( void *pvParameters )
                     }
                     else
                     {
-                        printf("Message Accepted\n");
+                        //printf("Message Accepted\n");
                         
                         /* The message was successfully sent to the IP stack.  Call
                         the standard trace macro to log the occurrence. */
@@ -165,7 +165,7 @@ static void prvEMACDeferredInterruptHandlerTask( void *pvParameters )
                 }
                 else
                 {
-                    printf("Drop Frame\n");
+                    //printf("Drop Frame\n");
                     
                     /* The Ethernet frame can be dropped, but the Ethernet buffer
                     must be released. */

@@ -846,7 +846,7 @@ BaseType_t xReturn = pdPASS;
 xFreeRTOS_Socket_t *pxSocket;
 BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    printf("Starting xProcessReceivedUDPPacket with port %u\n", usPort);
+    //printf("Starting xProcessReceivedUDPPacket with port %u\n", usPort);
 
 	vTaskSuspendAll();
 	{
@@ -858,7 +858,7 @@ BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
 	if( pxListItem != NULL )
 	{
-    	printf("pxListItem != NULL xProcessReceivedUDPPacket\n");
+    	//printf("pxListItem != NULL xProcessReceivedUDPPacket\n");
     	
 		/* The owner of the list item is the socket itself. */
 		pxSocket = ( xFreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxListItem );
@@ -892,27 +892,27 @@ BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 				}
 				taskEXIT_CRITICAL();
 				
-				printf("Give Semaphore xProcessReceivedUDPPacket\n");
+				//printf("Give Semaphore xProcessReceivedUDPPacket\n");
 
 				/* The socket's counting semaphore records how many packets are
 				waiting	to be processed by the socket. */
 				xSemaphoreGiveFromISR( pxSocket->xWaitingPacketSemaphore, &xHigherPriorityTaskWoken );
 				
-				printf("Semaphore Given xProcessReceivedUDPPacket\n");
+				//printf("Semaphore Given xProcessReceivedUDPPacket\n");
 			}
 		}
 		if( xTaskResumeAll() == pdFALSE )
 		{
 			if( xHigherPriorityTaskWoken != pdFALSE )
 			{
-    			printf("taskYIELD xProcessReceivedUDPPacket\n");
+    			//printf("taskYIELD xProcessReceivedUDPPacket\n");
 				taskYIELD();
 			}
 		}
 	}
 	else
 	{
-    	printf("pdFAIL xProcessReceivedUDPPacket\n");
+    	//printf("pdFAIL xProcessReceivedUDPPacket\n");
 		xReturn = pdFAIL;
 	}
 
