@@ -1467,7 +1467,7 @@ const xIPHeader_t * pxIPHeader;
 xUDPPacket_t *pxUDPPacket;
 BaseType_t xChecksumIsCorrect;
 
-    printf("prvProcessIPPacket\n");
+    //printf("prvProcessIPPacket\n");
 
 	pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -1507,7 +1507,7 @@ BaseType_t xChecksumIsCorrect;
 
 					case ipPROTOCOL_UDP :
 					
-    					printf("ipPROTOCOL_UDP\n");
+    					//printf("ipPROTOCOL_UDP\n");
 
 						/* The IP packet contained a UDP frame. */
 						pxUDPPacket = ( xUDPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
@@ -1538,7 +1538,7 @@ BaseType_t xChecksumIsCorrect;
 						/* Is the checksum correct? */
 						if( xChecksumIsCorrect == pdTRUE )
 						{
-    						printf("xProcessReceivedUDPPacket\n");
+    						//printf("xProcessReceivedUDPPacket\n");
     						
 							/* Pass the packet payload to the UDP sockets
 							implementation. */
