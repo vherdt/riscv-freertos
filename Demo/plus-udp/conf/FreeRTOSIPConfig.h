@@ -158,4 +158,16 @@ from the FreeRTOSIPConfig.h configuration header file. */
 	#define ipconfigETHERNET_DRIVER_CHECKS_UDP_CHECKSUM 0
 #endif
 
+static volatile uint32_t * const ETHERNET_STATUS_REG_ADDR       = (uint32_t * const)0x30000000;
+static volatile uint32_t * const ETHERNET_RECEIVE_SIZE_REG_ADDR = ETHERNET_STATUS_REG_ADDR       + 1;
+static volatile uint32_t * const ETHERNET_RECEIVE_DST_REG_ADDR  = ETHERNET_RECEIVE_SIZE_REG_ADDR + 1;
+static volatile uint32_t * const ETHERNET_SEND_SRC_REG_ADDR     = ETHERNET_RECEIVE_DST_REG_ADDR  + 1;
+static volatile uint32_t * const ETHERNET_SEND_SIZE_REG_ADDR    = ETHERNET_SEND_SRC_REG_ADDR     + 1;
+static volatile uint32_t * const ETHERNET_MAC_HIGH_REG_ADDR     = ETHERNET_SEND_SIZE_REG_ADDR    + 1;
+static volatile uint32_t * const ETHERNET_MAC_LOW_REG_ADDR      = ETHERNET_MAC_HIGH_REG_ADDR     + 1;
+
+#define ETHERNET_OPERATION_RECV 1
+#define ETHERNET_OPERATION_SEND 2
+
+
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
