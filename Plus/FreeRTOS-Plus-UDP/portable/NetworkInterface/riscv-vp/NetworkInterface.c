@@ -21,6 +21,8 @@
 /* Demo includes. */
 #include "NetworkInterface.h"
 
+#include <FreeRTOSIPConfig.h>
+
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
 driver will filter incoming packets and only pass the stack those packets it
 considers need processing.  In this case ipCONSIDER_FRAME_FOR_PROCESSING() can
@@ -37,26 +39,16 @@ needs to call eConsiderFrameForProcessing. */
 /*-----------------------------------------------------------*/
 // VP/HW interface
 
-static volatile uint32_t * const ETHERNET_STATUS_REG_ADDR = (uint32_t * const)0x30000000;
-static volatile uint32_t * const ETHERNET_RECV_SIZE_REG_ADDR = (uint32_t * const)0x30000004;
-static volatile uint32_t * const ETHERNET_RECV_DST_REG_ADDR = (uint32_t * const)0x30000008;
-static volatile uint32_t * const ETHERNET_SEND_SRC_REG_ADDR = (uint32_t * const)0x3000000c;
-static volatile uint32_t * const ETHERNET_SEND_SIZE_REG_ADDR = (uint32_t * const)0x30000010;
-
-#define ETHERNET_OPERATION_RECV 1
-#define ETHERNET_OPERATION_SEND 2
-
-
 size_t ReceiveSize( void ) {
     //printf("ReceiveSize()\n");
-    return *ETHERNET_RECV_SIZE_REG_ADDR;
+    return *ETHERNET_RECEIVE_SIZE_REG_ADDR;
 }
 
 
 void ReceiveData( uint8_t *buf ) {
     //printf("RecvData dst=%u\n", (uint32_t)buf);
     // assume that buf is large enough to hold ReceiveSize bytes
-    *ETHERNET_RECV_DST_REG_ADDR = (uint32_t)buf;
+    *ETHERNET_RECEIVE_DST_REG_ADDR = (uint32_t)buf;
     *ETHERNET_STATUS_REG_ADDR = ETHERNET_OPERATION_RECV;
 }
 

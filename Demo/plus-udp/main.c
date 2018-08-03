@@ -67,8 +67,7 @@ uint32_t ulCount = 0UL;
 const TickType_t x1000ms = 1000UL / portTICK_PERIOD_MS;
 long lBytes;
 
-    /* Send strings to port 10000 on IP address 192.168.0.188. */
-    xDestinationAddress.sin_addr = FreeRTOS_inet_addr( "192.168.0.90" );
+    xDestinationAddress.sin_addr = FreeRTOS_inet_addr( "134.102.218.255" );
     xDestinationAddress.sin_port = FreeRTOS_htons( 10000 );
 
     /* Create the socket. */
@@ -177,45 +176,21 @@ static const uint8_t ucGatewayAddress[ 4 ] = { 0, 0, 0, 0 };
 /* The following is the address of an OpenDNS server. */
 static const uint8_t ucDNSServerAddress[ 4 ] = { 208, 67, 222, 222 };
 
-/* The MAC address array is not declared const as the MAC address will
-normally be read from an EEPROM and not hard coded (in real deployed
-applications).*/
-//static uint8_t ucMACAddress[ 6 ] = { 0x54, 0xe1, 0xad, 0x74, 0x33, 0xfd };
-//static uint8_t ucMACAddress[ 6 ] = { 0x72, 0x5c, 0xb4, 0x2c, 0xac, 0x4a };
-static uint8_t ucMACAddress[ 6 ] = { 0x00, 0x11, 0x11, 0x11, 0x11, 0x11 };
+static uint8_t ucMACAddress[ 6 ];
 
-void printIP(uint32_t ip)
+void getMac(uint8_t mac[6])
 {
-	uint8_t* c = (uint8_t*)&ip;
-	for(uint8_t p = 0; p < 4; p++)
-	{
-		//printf("%s%3u", p > 0 ? "." : "", c[p]);
-		printf(".%3u", c[p]);
-	}
-}
+	uint8_t buf[8];
+	memcpy(buf, ETHERNET_MAC_HIGH_REG_ADDR, 4);
+	memcpy(&buf[4], ETHERNET_MAC_LOW_REG_ADDR, 4);	//Only allowed to read whole register
 
-void prvIPStatusprinter(void *pvParameters)
-{
-	while(1)
-	{
-		printf("I am alive\n");
-		uint32_t iPAddress, netMask, gateway, dnsServer;
-		FreeRTOS_GetAddressConfiguration(&iPAddress, &netMask, &gateway, &dnsServer);
-		printf(  "I am     ");
-		printIP(iPAddress);
-		printf(" ,   netMask ");
-		printIP(netMask);
-		printf("\ngateway: ");
-		printIP(gateway);
-		printf(", dnsServer: ");
-		printIP(dnsServer);
-		printf("\n");
-		vTaskDelay(250 / portTICK_PERIOD_MS);
-	}
+	memcpy(mac, buf, 6);
 }
 
 int main( void )
 {
+	getMac(ucMACAddress);
+
     /* Initialise the embedded Ethernet interface.  The tasks that use the
     network are created in the vApplicationIPNetworkEventHook() hook function
     below.  The hook function is called when the network connects. */
@@ -228,7 +203,6 @@ int main( void )
     /*
      * Other RTOS tasks can be created here.
      */
-    xTaskCreate( prvIPStatusprinter, "Statusprinter", ipconfigUDP_TASK_STACK_SIZE_WORDS, NULL, tskIDLE_PRIORITY+1, NULL );
 
     /* Start the RTOS scheduler. */
     vTaskStartScheduler();
