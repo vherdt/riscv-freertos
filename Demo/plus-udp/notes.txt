@@ -15,7 +15,9 @@ Activate the virtual interface.
 
 sudo ip link set dev vpeth1 up
 
-
 Add (static) entry to the ARP cache. For whatever reason the FreeRTOS-UDP library sends malformed ARP responses to the linux ARP requests. This workaround allows to just add the device running FreeRTOS to the cache to avoid those requests (probably also deactivate DHCP!?).
 
 sudo arp -s 192.168.0.188 72:5c:b4:2c:ac:4a
+
+to circumvent calling riscv-vp as root:
+`setcap cap_net_raw,cap_net_admin=eip riscv-vp`
