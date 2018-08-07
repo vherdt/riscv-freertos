@@ -163,5 +163,9 @@ sim: all
 	
 debug: all
 	riscv-vp $(PROG).elf --debug-mode --memory-start=2147483648
+	
+device: all
+	sudo ip link add link enp0s31f6 address 00:11:11:11:11:11 vpeth1 type macvlan
+	sudo ip link set dev vpeth1 up
 
 
