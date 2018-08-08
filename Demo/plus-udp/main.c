@@ -65,8 +65,8 @@ static void vReceivingUsingStandardInterface( void *pvParameters );
 /* Define the network addressing.  These parameters will be used if either
 ipconfigUDE_DHCP is 0 or if ipconfigUSE_DHCP is 1 but DHCP auto configuration
 failed. */
-static uint8_t ucIPAddress[ 4 ] = { 0, 0, 0, 0 };
-static uint8_t ucNetMask  [ 4 ] = { 255, 255, 255, 0 };
+static uint8_t ucIPAddress[ 4 ] = { 127, 0, 0, 1 };
+static uint8_t ucNetMask  [ 4 ] = { 255, 255, 255, 255 };
 static uint8_t ucGatewayAddress[ 4 ] = { 0, 0, 0, 0 };
 /* The following is the address of an OpenDNS server. */
 static uint8_t ucDNSServerAddress[ 4 ] = { 208, 67, 222, 222 };
@@ -176,9 +176,13 @@ uint32_t ulCount = 0UL;
 const TickType_t x1000ms = 1000UL / portTICK_PERIOD_MS;
 long lBytes;
 
-	uint32_t networkBroadcast = (*(uint32_t*)ucIPAddress) | ~(*(uint32_t*)ucNetMask);
+	//uint32_t networkBroadcast = FreeRTOS_inet_addr("255.255.255.255");
+	uint32_t networkBroadcast = FreeRTOS_inet_addr("134.102.218.135");
+	//uint32_t networkBroadcast = FreeRTOS_inet_addr("134.102.218.104");
+
+
     xDestinationAddress.sin_addr = networkBroadcast;
-    xDestinationAddress.sin_port = FreeRTOS_htons( 10000 );
+    xDestinationAddress.sin_port = FreeRTOS_htons( 10001 );
 
     /* Create the socket. */
     xSocket = FreeRTOS_socket( FREERTOS_AF_INET,
