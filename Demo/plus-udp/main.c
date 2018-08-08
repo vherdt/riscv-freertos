@@ -176,12 +176,13 @@ uint32_t ulCount = 0UL;
 const TickType_t x1000ms = 1000UL / portTICK_PERIOD_MS;
 long lBytes;
 
-	uint32_t networkBroadcast = FreeRTOS_inet_addr("255.255.255.255");
-	//uint32_t networkBroadcast = FreeRTOS_inet_addr("134.102.218.135");
+	//uint32_t networkBroadcast = FreeRTOS_inet_addr("255.255.255.255");
+	uint32_t networkBroadcast = FreeRTOS_inet_addr("134.102.218.135");
+	//uint32_t networkBroadcast = FreeRTOS_inet_addr("134.102.218.104");
 
 
     xDestinationAddress.sin_addr = networkBroadcast;
-    xDestinationAddress.sin_port = FreeRTOS_htons( 10000 );
+    xDestinationAddress.sin_port = FreeRTOS_htons( 10001 );
 
     /* Create the socket. */
     xSocket = FreeRTOS_socket( FREERTOS_AF_INET,
