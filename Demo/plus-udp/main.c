@@ -157,7 +157,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
             /*
              * Create the tasks here.
              */
-             xTaskCreate( vReceivingUsingStandardInterface, "Task Receive", 1000, NULL, 1, NULL );
+             //xTaskCreate( vReceivingUsingStandardInterface, "Task Receive", 1000, NULL, 1, NULL );
              xTaskCreate( vSendUsingStandardInterface, "Task Send", 1000, NULL, 1, NULL );
 
             xTasksAlreadyCreated = pdTRUE;
@@ -191,6 +191,7 @@ long lBytes;
 
     /* Check the socket was created. */
     configASSERT( xSocket != FREERTOS_INVALID_SOCKET );
+
 
     /* NOTE: FreeRTOS_bind() is not called.  This will only work if
     ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND is set to 1 in FreeRTOSIPConfig.h. */

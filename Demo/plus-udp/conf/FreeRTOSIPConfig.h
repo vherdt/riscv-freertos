@@ -53,7 +53,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifndef ipconfigMAX_ARP_AGE
-	#define ipconfigMAX_ARP_AGE			150
+	#define ipconfigMAX_ARP_AGE			300
 #endif
 
 #ifndef ipconfigINCLUDE_FULL_INET_ADDR
@@ -61,7 +61,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifndef ipconfigNUM_NETWORK_BUFFERS
-	#define ipconfigNUM_NETWORK_BUFFERS		45
+	#define ipconfigNUM_NETWORK_BUFFERS		60
 #endif
 
 #ifndef ipconfigEVENT_QUEUE_LENGTH
@@ -97,7 +97,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif /* ipconfigMAXIMUM_DISCOVER_TX_PERIOD */
 
 #ifndef ipconfigUSE_DNS
-	#define ipconfigUSE_DNS		1
+	#define ipconfigUSE_DNS		0
 #endif
 
 #ifndef ipconfigREPLY_TO_INCOMING_PINGS
