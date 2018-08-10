@@ -200,7 +200,7 @@ long lBytes;
     {
         /* Create the string that is sent. */
         sprintf( cString,
-                 "Standard send message number %" PRIu32 "\r\n",
+                 "[freertos] Standard send message number %" PRIu32 "\r\n",
                  ulCount );
 
         uint8_t cBuffer[16];
@@ -208,6 +208,10 @@ long lBytes;
 
         printf("[freertos] send to %s:\n", cBuffer);
         printf(cString);
+
+        if (ulCount >= 3) {
+        	asm volatile ("ebreak");
+        }
 
         /* Send the string to the socket.  ulFlags is set to 0, so the standard
         semantics are used.  That means the data from cString[] is copied
