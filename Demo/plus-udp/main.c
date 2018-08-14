@@ -60,6 +60,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
 
 static void vSendUsingStandardInterface( void *pvParameters );
 static void vReceivingUsingStandardInterface( void *pvParameters );
+static void iAmAlive( void *pvParameters );
 
 
 /* Define the network addressing.  These parameters will be used if either
@@ -96,6 +97,8 @@ int main( void )
                      ucGatewayAddress,
                      ucDNSServerAddress,
                      ucMACAddress );
+
+    xTaskCreate(iAmAlive, "aliveHeartbeat", 1000, NULL, 1, NULL );
 
     /*
      * Other RTOS tasks can be created here.
@@ -209,10 +212,6 @@ long lBytes;
         printf("[freertos] send to %s:\n", cBuffer);
         printf(cString);
 
-        if (ulCount >= 3) {
-        	asm volatile ("ebreak");
-        }
-
         /* Send the string to the socket.  ulFlags is set to 0, so the standard
         semantics are used.  That means the data from cString[] is copied
         into a network buffer inside FreeRTOS_sendto(), and cString[] can be
@@ -237,6 +236,34 @@ long lBytes;
         /* Wait until it is time to send again. */
         vTaskDelay( x1000ms );
     }
+}
+
+static void iAmAlive(void *pvParameters )
+{
+	for(uint16_t i = 0; 1; i++)
+	{
+		TaskHandle_t task = NULL;
+		printf("i am alive n° %d\n", i);
+		/*
+		printf("Own Stackusage: %lu Byte\n", uxTaskGetStackHighWaterMark(task));
+		task = xTaskGetHandle("Task Send");
+		if(task != NULL)
+		{
+			printf("Task Send SU  : %lu Byte\n", uxTaskGetStackHighWaterMark(task));
+		}
+		task = xTaskGetHandle("UDP/IP");
+		if(task != NULL)
+		{
+			printf("UDP/IP SU     : %lu Byte\n", uxTaskGetStackHighWaterMark(task));
+		}
+		task = xTaskGetIdleTaskHandle();
+		if(task != NULL)
+		{
+			printf("IdleTask SU   : %lu Byte\n", uxTaskGetStackHighWaterMark(task));
+		}
+		*/
+		vTaskDelay( 500UL / portTICK_PERIOD_MS);
+	}
 }
 
 static void vReceivingUsingStandardInterface( void *pvParameters )
@@ -300,6 +327,7 @@ void vApplicationMallocFailedHook( void )
 	FreeRTOSConfig.h, and the xPortGetFreeHeapSize() API function can be used
 	to query the size of free heap space that remains (although it does not
 	provide information on how the remaining heap might be fragmented). */
+	printf("Malloc fayul!\n");
 	taskDISABLE_INTERRUPTS();
 	for( ;; );
 }
@@ -316,6 +344,7 @@ void vApplicationIdleHook( void )
 	important that vApplicationIdleHook() is permitted to return to its calling
 	function, because it is the responsibility of the idle task to clean up
 	memory allocated by the kernel to any task that has since been deleted. */
+	printf("Idle?\n");
 }
 /*-----------------------------------------------------------*/
 
@@ -324,10 +353,11 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
 	( void ) pcTaskName;
 	( void ) pxTask;
 
+	printf("Swag Overflow of %s!\n", pcTaskName);
 	/* Run time stack overflow checking is performed if
 	configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook
 	function is called if a stack overflow is detected. */
-	taskDISABLE_INTERRUPTS();
-	for( ;; );
+	//taskDISABLE_INTERRUPTS();
+	//for( ;; );
 }
 /*-----------------------------------------------------------*/

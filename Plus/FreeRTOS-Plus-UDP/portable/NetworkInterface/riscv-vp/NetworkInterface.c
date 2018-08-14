@@ -60,6 +60,11 @@ void SendData( uint8_t *buf, size_t num_bytes ) {
     *ETHERNET_STATUS_REG_ADDR = ETHERNET_OPERATION_SEND;
 }
 
+BaseType_t IsDataAvailable()
+{
+	return ReceiveSize() != 0;
+}
+
 
 /*-----------------------------------------------------------*/
 // FreeRTOS interface
@@ -69,7 +74,7 @@ SemaphoreHandle_t xEMACRxEventSemaphore;
 
 BaseType_t ethernet_mac_irq_handler( void ) {
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
-    BaseType_t ans = xSemaphoreGiveFromISR(xEMACRxEventSemaphore, &pxHigherPriorityTaskWoken);
+    xSemaphoreGiveFromISR(xEMACRxEventSemaphore, &pxHigherPriorityTaskWoken);
 
 	//portRETURN_FROM_ISR;
 	portYIELD_FROM_ISR( pxHigherPriorityTaskWoken );
@@ -83,7 +88,7 @@ static void prvEMACDeferredInterruptHandlerTask( void *pvParameters )
     size_t xBytesReceived;
     extern QueueHandle_t xNetworkEventQueue;
     xIPStackEvent_t xRxEvent;
-
+    (void) pvParameters;
     for( ;; )
     {
         //printf("NetworkInterface Wait\n");
@@ -201,11 +206,15 @@ BaseType_t xNetworkInterfaceOutput( xNetworkBufferDescriptor_t * const pxNetwork
 
 
 BaseType_t xNetworkInterfaceInitialise( void ) {
-    register_interrupt_handler(7, ethernet_mac_irq_handler);
-    
     xEMACRxEventSemaphore = xSemaphoreCreateCounting(16, 0);
-    
+
+    register_interrupt_handler(7, ethernet_mac_irq_handler);
     xTaskCreate( prvEMACDeferredInterruptHandlerTask, "prvEMACDeferredInterruptHandlerTask", 1000, NULL, 3, NULL );
     
+    if(IsDataAvailable() && uxSemaphoreGetCount(xEMACRxEventSemaphore) == 0)
+    {	//this is safe because we have actually just one element in Semaphore
+    	xSemaphoreGive(xEMACRxEventSemaphore);
+    }
+
     return pdPASS;
 }

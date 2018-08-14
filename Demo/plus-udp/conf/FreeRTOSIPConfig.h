@@ -31,7 +31,7 @@
 /* This file provides default values for configuration options that are missing
 from the FreeRTOSIPConfig.h configuration header file. */
 
-#define ipconfigUDP_TASK_STACK_SIZE_WORDS 1024
+#define ipconfigUDP_TASK_STACK_SIZE_WORDS 8*1024
 #define ipconfigUDP_TASK_PRIORITY (configMAX_PRIORITIES - 1)
 #define ipconfigBYTE_ORDER FREERTOS_LITTLE_ENDIAN
 
@@ -45,7 +45,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifndef ipconfigARP_CACHE_ENTRIES
-	#define ipconfigARP_CACHE_ENTRIES		100
+	#define ipconfigARP_CACHE_ENTRIES		200
 #endif
 
 #ifndef ipconfigMAX_ARP_RETRANSMISSIONS
@@ -61,7 +61,7 @@ from the FreeRTOSIPConfig.h configuration header file. */
 #endif
 
 #ifndef ipconfigNUM_NETWORK_BUFFERS
-	#define ipconfigNUM_NETWORK_BUFFERS		60
+	#define ipconfigNUM_NETWORK_BUFFERS		100
 #endif
 
 #ifndef ipconfigEVENT_QUEUE_LENGTH

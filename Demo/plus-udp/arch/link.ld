@@ -72,15 +72,16 @@
 
 OUTPUT_ARCH( "riscv" )
 
-_STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x1000;
-_HEAP_SIZE = DEFINED(_HEAP_SIZE) ? _HEAP_SIZE : 0x1000;
+_STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 64*1024;
+_HEAP_SIZE = DEFINED(_HEAP_SIZE) ? _HEAP_SIZE : 1024*1024;
 
 /*****************************************************************************
  * Define memory layout
  ****************************************************************************/
 MEMORY {
-	imem : ORIGIN = 0x80000000, LENGTH = 0x00020000
-	dmem : ORIGIN = 0x80020000, LENGTH = 0x00200000
+    /*Total memsize is 32MB (0x02000000)*/
+	imem : ORIGIN = 0x80000000, LENGTH = 0x00050000
+	dmem : ORIGIN = 0x80050000, LENGTH = 0x01000000
 }
 
 /* Specify the default entry point to the program */
