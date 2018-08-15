@@ -398,6 +398,7 @@ xIPStackEvent_t xReceivedEvent;
 			{
 				case eNetworkDownEvent :
 					/* Attempt to establish a connection. */
+					//printf("NetworkDownEvent\n");
 					prvProcessNetworkDownEvent();
 					break;
 
@@ -405,11 +406,13 @@ xIPStackEvent_t xReceivedEvent;
 					/* The network hardware driver has received a new packet.
 					A pointer to the received buffer is located in the pvData
 					member of the received event structure. */
+					//printf("eEthernetRxEvent\n");
 					prvProcessEthernetPacket( ( xNetworkBufferDescriptor_t * ) ( xReceivedEvent.pvData ) );
 					break;
 
 				case eARPTimerEvent :
 					/* The ARP timer has expired, process the ARP cache. */
+					printf("eARPTimerEvent\n");
 					prvAgeARPCache();
 					break;
 
@@ -417,6 +420,7 @@ xIPStackEvent_t xReceivedEvent;
 					/* The network stack has generated a packet to send.  A
 					pointer to the generated buffer is located in the pvData
 					member of the received event structure. */
+					//printf("eStackTXevent\n");
 					prvProcessGeneratedPacket( ( xNetworkBufferDescriptor_t * ) ( xReceivedEvent.pvData ) );
 					break;
 
@@ -424,6 +428,7 @@ xIPStackEvent_t xReceivedEvent;
 					/* The DHCP state machine needs processing. */
 					#if ipconfigUSE_DHCP == 1
 					{
+						//printf("eDHCPEvent\n");
 						vDHCPProcess( pdFALSE, ( xMACAddress_t * ) ipLOCAL_MAC_ADDRESS, ipLOCAL_IP_ADDRESS_POINTER, &xNetworkAddressing );
 					}
 					#endif
@@ -884,6 +889,7 @@ uint8_t ucMinAgeFound = 0U;
 
 				/* Refresh the cache entry so the entry's age is back to its
 				maximum	value. */
+				//printf("refresh ARP entry\n");
 				xARPCache[ x ].ucAge = ipconfigMAX_ARP_AGE;
 				memcpy( &( xARPCache[ x ].xMACAddress ), pxMACAddress, sizeof( xMACAddress_t ) );
 				xEntryFound = pdTRUE;
@@ -907,6 +913,7 @@ uint8_t ucMinAgeFound = 0U;
 		{
 			/* The wanted entry does not already exist.  Add the entry into the
 			cache, replacing the oldest entry (which might be an empty entry). */
+			//printf("add entry to cache\n");
 			xARPCache[ xOldestEntry ].ulIPAddress = ulIPAddress;
 			memcpy( &( xARPCache[ xOldestEntry ].xMACAddress ), pxMACAddress, sizeof( xMACAddress_t ) );
 
@@ -925,6 +932,10 @@ uint8_t ucMinAgeFound = 0U;
 				xARPCache[ xOldestEntry ].ucAge = ipconfigMAX_ARP_AGE;
 			}
 		}
+	}
+	else
+	{
+		//printf("ARP-Reply not on local network\n");
 	}
 }
 /*-----------------------------------------------------------*/
@@ -1417,16 +1428,19 @@ volatile eFrameProcessingResult_t eReturned; /* Volatile to prevent complier war
 		{
 			case ipARP_TYPE	:
 				/* The Ethernet frame contains an ARP packet. */
+				//printf("ipARP\n");
 				eReturned = prvProcessARPPacket( ( xARPPacket_t * ) pxEthernetHeader );
 				break;
 
 			case ipIP_TYPE	:
 				/* The Ethernet frame contains an IP packet. */
+				//printf("ipIP\n");
 				eReturned = prvProcessIPPacket( ( xIPPacket_t * ) pxEthernetHeader, pxNetworkBuffer );
 				break;
 
 			default :
 				/* No other packet types are handled.  Nothing to do. */
+				//printf("unhandled\n");
 				eReturned = eReleaseBuffer;
 				break;
 		}
@@ -1803,6 +1817,7 @@ xARPHeader_t *pxARPHeader;
 			case ipARP_REQUEST	:
 				/* The packet contained an ARP request.  Was it for the IP
 				address of the node running this code? */
+				//printf("ipARP_REQUEST\n");
 				if( pxARPHeader->ulTargetProtocolAddress == *ipLOCAL_IP_ADDRESS_POINTER )
 				{
 					iptraceSENDING_ARP_REPLY( pxARPHeader->ulSenderProtocolAddress );
@@ -1824,13 +1839,31 @@ xARPHeader_t *pxARPHeader;
 				break;
 
 			case ipARP_REPLY :
+				//printf("ipARP_REPLY\n");
 				iptracePROCESSING_RECEIVED_ARP_REPLY( pxARPHeader->ulTargetProtocolAddress );
 				prvRefreshARPCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), pxARPHeader->ulSenderProtocolAddress );
 				break;
 
 			default :
 				/* Invalid. */
+				//printf("INVALID ARP Packet\n");
 				break;
+		}
+	}
+	else
+	{
+		//printf("invalid Protocol type or we have currently no IP\n");
+		if(pxARPHeader->usProtocolType != ipARP_PROTOCOL_TYPE )
+		{
+			//printf("protocol differs: is %04x, should %04x\n", pxARPHeader->usProtocolType, ipARP_PROTOCOL_TYPE);
+		}
+		else if(*ipLOCAL_IP_ADDRESS_POINTER == 0UL)
+		{
+			//printf("no IP\n");
+		}
+		else
+		{
+			//printf("WHUT?\n");
 		}
 	}
 
