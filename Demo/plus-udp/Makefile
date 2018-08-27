@@ -1,6 +1,6 @@
 #/*
 #    FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
-#	
+#
 #
 #    ***************************************************************************
 #     *                                                                       *
@@ -54,7 +54,7 @@
 #    licensing and training services.
 #*/
 
-include ./Makefile.inc
+include ../Makefile.inc
 
 # Root of RISC-V tools installation. Note that we expect to find the spike
 # simulator header files here under $(RISCV)/include/spike .
@@ -76,7 +76,7 @@ APP_SRC =  \
 	$(APP_SOURCE_DIR)/blocktim.c \
 	$(APP_SOURCE_DIR)/countsem.c \
 	$(APP_SOURCE_DIR)/recmutex.c
-		
+
 
 PORT_SRC = $(FREERTOS_SOURCE_DIR)/portable/GCC/RISCV/port.c
 PORT_ASM = $(FREERTOS_SOURCE_DIR)/portable/GCC/RISCV/portasm.S
@@ -87,18 +87,19 @@ PLUS_UDP_SRC =  \
     $(FREERTOS_PLUS_UDP_DIR)/FreeRTOS_Sockets.c \
     $(FREERTOS_PLUS_UDP_DIR)/FreeRTOS_UDP_IP.c \
     $(FREERTOS_PLUS_UDP_DIR)/portable/BufferManagement/BufferAllocation_2.c
-    
+
 PORT_UDP_SRC = $(FREERTOS_PLUS_UDP_DIR)/portable/NetworkInterface/riscv-vp/NetworkInterface.c
 
 DEMO_SRC = \
-	arch/syscalls.c \
-	arch/clib.c \
-	arch/irq.c \
+	$(ARCH_DIR)/syscalls.c \
+	$(ARCH_DIR)/clib.c \
+	$(ARCH_DIR)/irq.c \
 	main.c
 
 INCLUDES = \
 	-I. \
-	-I./arch \
+	-I$(ARCH_DIR) \
+	-I$(ARCH_DIR)/../\
 	-I./conf \
 	-I./include \
 	-I$(FREERTOS_SOURCE_DIR)/include \
@@ -127,7 +128,7 @@ PLUS_UDP_OBJ = $(PLUS_UDP_SRC:.c=.o)
 PORT_UDP_OBJ = $(PORT_UDP_SRC:.c=.o)
 OBJS = $(CRT0_OBJ) $(PORT_ASM_OBJ) $(PORT_OBJ) $(RTOS_OBJ) $(DEMO_OBJ) $(APP_OBJ) $(PLUS_UDP_OBJ) $(PORT_UDP_OBJ)
 
-LDFLAGS	 = -T arch/link.ld -nostartfiles -static -nostdlib
+LDFLAGS	 = -T $(ARCH_DIR)/link.ld -nostartfiles -static -nostdlib
 LIBS	 = -L$(CCPATH)/lib/gcc/$(TARGET)/$(GCCVER) \
 		   -L$(CCPATH)/$(TARGET)/lib \
 		   -lc -lgcc
@@ -142,15 +143,15 @@ LIBS	 = -L$(CCPATH)/lib/gcc/$(TARGET)/$(GCCVER) \
 
 all: $(PROG).elf
 
-$(PROG).elf  : $(OBJS) Makefile 
+$(PROG).elf  : $(OBJS) Makefile
 	@echo Linking....
 	@$(GCC) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
-	@$(OBJDUMP) -S $(PROG).elf > $(PROG).asm	
+	@$(OBJDUMP) -S $(PROG).elf > $(PROG).asm
 	@echo Completed $@
 
 clean :
 	@rm -f $(OBJS)
-	@rm -f $(PROG).elf 
+	@rm -f $(PROG).elf
 	@rm -f $(PROG).map
 	@rm -f $(PROG).asm
 
@@ -160,10 +161,10 @@ force_true:
 #-------------------------------------------------------------
 sim: all
 	riscv-vp $(PROG).elf --memory-start=2147483648
-	
+
 debug: all
 	riscv-vp $(PROG).elf --debug-mode --memory-start=2147483648
-	
+
 device: all
 	sudo ip link add link enp0s31f6 address 00:11:11:11:11:11 vpeth1 type macvlan
 	sudo ip link set dev vpeth1 up

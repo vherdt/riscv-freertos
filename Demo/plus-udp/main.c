@@ -15,9 +15,9 @@
 #include "FreeRTOS_UDP_IP.h"
 
 /* RISCV includes */
-#include "arch/syscalls.h"
-#include "arch/clib.h"
-#include "arch/irq.h"
+#include <arch/syscalls.h>
+#include <arch/clib.h>
+#include <arch/irq.h>
 
 
 unsigned long ipconfigRAND32( void );

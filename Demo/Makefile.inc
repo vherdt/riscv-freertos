@@ -1,4 +1,5 @@
 # File to be included in all makefiles
+# Relative paths are viewed from project!
 
 RISCV_XLEN ?= 32
 RISCV_LIB  ?= elf
@@ -14,9 +15,13 @@ AR		= $(TARGET)-ar
 RANLIB	= $(TARGET)-ranlib
 
 PROG	= riscv-main
-CRT0	= arch/boot.S
+ARCH_DIR = ../../arch
+CRT0	= $(ARCH_DIR)/boot.S
 
 FREERTOS_SOURCE_DIR	= ../../Source
+FREERTOS_PLUS_DIR	= ../../Plus
+FREERTOS_PLUS_UDP_DIR = ../../Plus/FreeRTOS-Plus-UDP
+FREERTOS_PLUS_FAT_DIR = ../../Plus/FreeRTOS-Plus-FAT
 CUNIT	= ../../../cunit
 
 #-----------------------------------------------------------

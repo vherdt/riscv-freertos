@@ -1,6 +1,6 @@
 #/*
 #    FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
-#	
+#
 #
 #    ***************************************************************************
 #     *                                                                       *
@@ -54,7 +54,7 @@
 #    licensing and training services.
 #*/
 
-include ./Makefile.inc
+include ../Makefile.inc
 
 # Root of RISC-V tools installation. Note that we expect to find the spike
 # simulator header files here under $(RISCV)/include/spike .
@@ -77,7 +77,6 @@ APP_SRC =  \
 	$(APP_SOURCE_DIR)/blocktim.c \
 	$(APP_SOURCE_DIR)/countsem.c \
 	$(APP_SOURCE_DIR)/recmutex.c
-		
 
 PORT_SRC = $(FREERTOS_SOURCE_DIR)/portable/GCC/RISCV/port.c
 PORT_ASM = $(FREERTOS_SOURCE_DIR)/portable/GCC/RISCV/portasm.S
@@ -97,18 +96,18 @@ PLUS_FAT_SRC =  \
     $(FREERTOS_PLUS_FAT_DIR)/ff_time.c \
     $(FREERTOS_PLUS_FAT_DIR)/ff_stdio.c \
     $(FREERTOS_PLUS_FAT_DIR)/portable/RiscV-VP/ff_flash.c
-    
     #$(FREERTOS_PLUS_FAT_DIR)/ff_dev_support.c \
-    
+
 DEMO_SRC = \
-	arch/syscalls.c \
-	arch/clib.c \
-	arch/irq.c \
+	$(ARCH_DIR)/syscalls.c \
+        $(ARCH_DIR)/clib.c \
+        $(ARCH_DIR)/irq.c \
 	main.c
 
 INCLUDES = \
 	-I. \
-	-I./arch \
+	-I$(ARCH_DIR) \
+	-I$(ARCH_DIR)/../ \
 	-I./conf \
 	-I./include \
 	-I$(FREERTOS_SOURCE_DIR)/include \
@@ -136,10 +135,10 @@ CRT0_OBJ = $(CRT0:.S=.o)
 PLUS_FAT_OBJ = $(PLUS_FAT_SRC:.c=.o)
 OBJS = $(CRT0_OBJ) $(PORT_ASM_OBJ) $(PORT_OBJ) $(RTOS_OBJ) $(DEMO_OBJ) $(APP_OBJ) $(PLUS_FAT_OBJ)
 
-LDFLAGS	 = -T arch/link.ld -nostartfiles -static -nostdlib
+LDFLAGS	 = -T $(ARCH_DIR)/link.ld -nostartfiles -static -nostdlib
 LIBS	 = -L$(CCPATH)/lib/gcc/$(TARGET)/$(GCCVER) \
 		   -L$(CCPATH)/$(TARGET)/lib \
-		   -lc -lgloss -lc -lgcc  
+		   -lc -lgloss -lc -lgcc
 
 %.o: %.c
 	@echo "    CC $<"
@@ -151,16 +150,16 @@ LIBS	 = -L$(CCPATH)/lib/gcc/$(TARGET)/$(GCCVER) \
 
 all: $(PROG).elf
 
-$(PROG).elf  : $(OBJS) Makefile 
+$(PROG).elf  : $(OBJS) Makefile
 	@echo Linking....
 	@echo $(GCC) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
 	@$(GCC) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
-	@$(OBJDUMP) -S $(PROG).elf > $(PROG).asm	
+	@$(OBJDUMP) -S $(PROG).elf > $(PROG).asm
 	@echo Completed $@
 
 clean :
 	@rm -f $(OBJS)
-	@rm -f $(PROG).elf 
+	@rm -f $(PROG).elf
 	@rm -f $(PROG).map
 	@rm -f $(PROG).asm
 
@@ -171,7 +170,7 @@ force_true:
 
 sim: all
 	riscv-vp $(PROG).elf --memory-start=2147483648
-	
+
 debug: all
 	riscv-vp $(PROG).elf --debug-mode --memory-start=2147483648
 

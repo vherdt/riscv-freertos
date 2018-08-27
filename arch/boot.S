@@ -92,7 +92,7 @@ boot:
 	.align 6
 	.section .text,"ax",@progbits
 	.globl _mstart
-	
+
 /* Startup code */
 _mstart:
     la t0, trap_entry
@@ -157,7 +157,7 @@ init_stack:
     /* set stack pointer */
     la	sp, _stack
 	j	vSyscallInit
-	
+
 /* Restore t0 from stack */
 .macro macroRESTORE_t0
 	LOAD    t0, 0x0(sp)
@@ -174,21 +174,21 @@ interrupt:
 	beq     t0,x0,externalInterrupt
 	/* Interupt is timer interrupt */
     j       timerInterrupt
-	
+
 timerInterrupt:
     macroRESTORE_t0
 	j		TIMER_CMP_INT
 	mret
-	
-	
+
+
 // NOTE: can optimize this by checking if an interrupt handler is registered first, to avoid storing/re-storing context when no handler is available
 externalInterrupt:
     // clear pending interrupt flag
     li      t0, 0x800
     csrc    mip, t0
-    
+
     // save relevant registers on stack
-    addi    sp, sp, -REGBYTES * 31
+    addi    sp, sp, -REGBYTES * 32
     STORE	x1, 0x0(sp)
     STORE	x6, 5 * REGBYTES(sp)
     STORE	x7, 6 * REGBYTES(sp)
@@ -205,7 +205,7 @@ externalInterrupt:
     STORE	x30, 29 * REGBYTES(sp)
     STORE	x31, 30 * REGBYTES(sp)
 
-    // call C interrupt handler function and keep the result in t0    
+    // call C interrupt handler function and keep the result in t0
     jal     xExternalInterruptHandler
     mv      t0, a0
 
@@ -225,15 +225,15 @@ externalInterrupt:
     LOAD	x29, 28 * REGBYTES(sp)
     LOAD	x30, 29 * REGBYTES(sp)
     LOAD	x31, 30 * REGBYTES(sp)
-    addi	sp, sp, REGBYTES * 31
+    addi	sp, sp, REGBYTES * 32
 
     bgt     t0, x0, yield_from_isr
-    
+
     // restore modified registers
     macroRESTORE_t0
 	mret
 
-    
+
 yield_from_isr:
     macroRESTORE_t0
     j       vPortYield
@@ -255,7 +255,7 @@ trap_entry:
 	addi	sp, sp, REGBYTES
 
 	/* System call and other traps */
-	addi sp, sp, -REGBYTES*31
+	addi sp, sp, -REGBYTES*32
 	STORE x1, 1*REGBYTES(sp)
 	STORE x2, 2*REGBYTES(sp)
 	STORE x3, 3*REGBYTES(sp)
@@ -329,7 +329,7 @@ trap_entry:
 	LOAD x30, 30*REGBYTES(sp)
 	LOAD x31, 31*REGBYTES(sp)
 
-	addi sp, sp, REGBYTES*31
+	addi sp, sp, REGBYTES*32
 	mret
 
 /* Fills memory blocks */
