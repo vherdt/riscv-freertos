@@ -98,7 +98,7 @@ int main( void )
                      ucDNSServerAddress,
                      ucMACAddress );
 
-    xTaskCreate(iAmAlive, "aliveHeartbeat", 1000, NULL, 1, NULL );
+    //xTaskCreate(iAmAlive, "aliveHeartbeat", 1000, NULL, 1, NULL );
 
     /*
      * Other RTOS tasks can be created here.
@@ -160,7 +160,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
             /*
              * Create the tasks here.
              */
-             //xTaskCreate( vReceivingUsingStandardInterface, "Task Receive", 1000, NULL, 1, NULL );
+             xTaskCreate( vReceivingUsingStandardInterface, "Task Receive", 1000, NULL, 1, NULL );
              xTaskCreate( vSendUsingStandardInterface, "Task Send", 1000, NULL, 1, NULL );
 
             xTasksAlreadyCreated = pdTRUE;
@@ -245,7 +245,6 @@ static void iAmAlive(void *pvParameters )
 	{
 		TaskHandle_t task = NULL;
 		printf("i am alive n° %d\n", i);
-		/*
 		printf("Own Stackusage: %lu Byte\n", uxTaskGetStackHighWaterMark(task));
 		task = xTaskGetHandle("Task Send");
 		if(task != NULL)
@@ -262,7 +261,6 @@ static void iAmAlive(void *pvParameters )
 		{
 			printf("IdleTask SU   : %lu Byte\n", uxTaskGetStackHighWaterMark(task));
 		}
-		*/
 		vTaskDelay( 500UL / portTICK_PERIOD_MS);
 	}
 }
@@ -284,7 +282,7 @@ xSocket_t xListeningSocket;
     configASSERT( xListeningSocket != FREERTOS_INVALID_SOCKET );
 
     /* Bind to port 10000. */
-    xBindAddress.sin_port = FreeRTOS_htons( 10001 );
+    xBindAddress.sin_port = FreeRTOS_htons( 10000 );
     FreeRTOS_bind( xListeningSocket, &xBindAddress, sizeof( xBindAddress ) );
 
     for( ;; )
