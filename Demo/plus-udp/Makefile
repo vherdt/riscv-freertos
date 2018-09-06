@@ -165,9 +165,12 @@ sim: all
 debug: all
 	riscv-vp $(PROG).elf --debug-mode --memory-start=2147483648
 
+ETH_DEV=enp0s31f6
+OWN_IP=134.102.218.135
+GUEST_IP=134.102.218.230
 
 macvtap:
-	sudo ip link add link enp0s31f6 name macvtap0 type macvtap mode bridge
+	sudo ip link add link $(ETH_DEV) name macvtap0 type macvtap mode bridge
 	sudo ip link set macvtap0 address 00:11:11:11:11:11 up
 	sudo ip link show macvtap0
 
@@ -175,12 +178,13 @@ macvtapclean:
 	sudo ip link del macvtap0 || true
 
 macvlan:
-	sudo ip link add link enp0s31f6 address 00:11:11:11:11:11 mvl0 type macvlan mode bridge
-	sudo ip link add link enp0s31f6 name mvlHost type macvlan mode bridge
+	sudo ip link add link $(ETH_DEV) address 00:11:11:11:11:11 mvl0 type macvlan mode bridge
+	sudo ip link add link $(ETH_DEV) name mvlHost type macvlan mode bridge
 	sudo ip link set dev mvlHost up
 	sudo ip link set dev mvl0 up
-	sudo ip addr add 134.102.218.135/24 dev mvlHost noprefixroute
-	sudo ip route add 134.102.218.230/32 dev mvlHost
+	sudo ip addr add $(OWN_IP)/24 dev mvlHost noprefixroute
+	sudo ip route add $(GUEST_IP)/32 dev mvlHost
+	ip route show
 
 macvlanclean:
 	sudo ip link del mvl0 || true
@@ -192,13 +196,13 @@ bridge:
 	sudo killall dhclient
 	sudo ip tuntap add name tap0 mode tap
 	sudo ip link set tap0 address 00:11:11:11:11:11
-	sudo ip link set enp0s31f6 down
+	sudo ip link set $(ETH_DEV) down
 	sudo brctl addbr br0
-	sudo brctl addif br0 enp0s31f6
+	sudo brctl addif br0 $(ETH_DEV)
 	sudo brctl addif br0 tap0
-	sudo ip link set enp0s31f6 master br0
+	sudo ip link set $(ETH_DEV) master br0
 	sudo ip link set tap0 up
-	sudo ip link set enp0s31f6 up
+	sudo ip link set $(ETH_DEV) up
 	sudo ip link set br0 up
 	sudo dhclient -v br0
 
@@ -206,7 +210,7 @@ bridgeclean:
 	sudo killall dhclient || true
 	sudo ip link del tap0 || true
 	sudo ip link del br0 || true
-	sudo dhclient -v enp0s31f6 
+	sudo dhclient -v $(ETH_DEV) 
 
 
 
