@@ -176,7 +176,7 @@ xSocket_t xSocket;
 struct freertos_sockaddr xDestinationAddress;
 int8_t cString[ 50 ];
 uint32_t ulCount = 0UL;
-const TickType_t x1000ms = 1000UL / portTICK_PERIOD_MS;
+const TickType_t delay = 1000UL / portTICK_PERIOD_MS;
 long lBytes;
 
 
@@ -235,7 +235,7 @@ long lBytes;
         ulCount++;
 
         /* Wait until it is time to send again. */
-        vTaskDelay( x1000ms );
+        vTaskDelay( delay );
     }
 }
 

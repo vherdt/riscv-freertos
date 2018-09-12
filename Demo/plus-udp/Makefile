@@ -169,8 +169,18 @@ ETH_DEV=enp0s31f6
 OWN_IP=134.102.218.135
 GUEST_IP=134.102.218.230
 
+tap:
+	sudo killall dhclient || true
+	sudo ip tuntap add mode tap tap0
+	sudo ip link set tap0 address F0:00:00:00:00:00 up	#when bridging, virtual client needs "higher" MAC so that bridge keeps hosts mac
+	sudo brctl addbr br0
+	sudo brctl setfd br0 0
+	sudo brctl addif br0 $(ETH_DEV)
+	sudo dhclient br0
+	sudo brctl addif br0 tap0
+
 macvtap:
-	sudo ip link add link $(ETH_DEV) name macvtap0 type macvtap mode bridge
+	sudo ip link add link $(ETH_DEV) name macvtap0 type macvtap mode passthru
 	sudo ip link set macvtap0 address 00:11:11:11:11:11 up
 	sudo ip link show macvtap0
 
@@ -178,19 +188,18 @@ macvtapclean:
 	sudo ip link del macvtap0 || true
 
 macvlan:
-	sudo ip link add link $(ETH_DEV) address 00:11:11:11:11:11 mvl0 type macvlan mode bridge
-	sudo ip link add link $(ETH_DEV) name mvlHost type macvlan mode bridge
-	sudo ip link set dev mvlHost up
+	sudo ip link add link $(ETH_DEV) address 00:11:11:11:11:11 mvl0 type macvlan mode vepa
+	#sudo ip link add link $(ETH_DEV) name mvlHost type macvlan mode bridge
+	#sudo ip link set dev mvlHost up
 	sudo ip link set dev mvl0 up
-	sudo ip addr add $(OWN_IP)/24 dev mvlHost noprefixroute
-	sudo ip route add $(GUEST_IP)/32 dev mvlHost
+	#sudo ip addr add $(OWN_IP)/24 dev mvlHost noprefixroute
+	#sudo ip route add $(GUEST_IP)/32 dev mvlHost
+	ip addr
 	ip route show
 
 macvlanclean:
 	sudo ip link del mvl0 || true
 	sudo ip link del mvlHost || true
-
-
 
 bridge:
 	sudo killall dhclient
@@ -211,6 +220,8 @@ bridgeclean:
 	sudo ip link del tap0 || true
 	sudo ip link del br0 || true
 	sudo dhclient -v $(ETH_DEV) 
+	
+netclean: macvtapclean macvlanclean bridgeclean
 
 
 
