@@ -177,6 +177,10 @@ network:
 	sudo dhclient br0	#important to call before adding tap0 to supress getting its IP
 	sudo brctl addif br0 tap0
 
+tap:
+	sudo ip link add link $(ETH_DEV) name macvtap0 type macvtap
+	sudo ip link set macvtap0 address F0:00:00:00:00:00 up
+	ip link show
 
 bridgeclean:
 	sudo killall dhclient || true
