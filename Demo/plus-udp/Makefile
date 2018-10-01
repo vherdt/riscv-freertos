@@ -159,15 +159,16 @@ force_true:
 	@true
 
 #-------------------------------------------------------------
-sim: all
-	riscv-vp $(PROG).elf --memory-start=2147483648
-
-debug: all
-	riscv-vp $(PROG).elf --debug-mode --memory-start=2147483648
 
 ETH_DEV=enp0s31f6
 
-network:
+sim: all
+	riscv-vp $(PROG).elf --memory-start=2147483648 --network-device=$(shell ls /dev/tap*)
+
+debug: all
+	riscv-vp $(PROG).elf --debug-mode --network-device=$(shell ls /dev/tap*) --memory-start=2147483648
+
+bridge:
 	sudo killall dhclient || true
 	sudo ip tuntap add mode tap tap0
 	sudo ip link set tap0 address F0:00:00:00:00:00 up	#when bridging, virtual client needs "higher" MAC so that bridge keeps hosts mac
@@ -180,15 +181,25 @@ network:
 tap:
 	sudo ip link add link $(ETH_DEV) name macvtap0 type macvtap
 	sudo ip link set macvtap0 address F0:00:00:00:00:00 up
+	sudo chmod a+rw /dev/tap*
+	ls -la /dev/tap*
 	ip link show
+
+tapclean:
+	sudo killall dhclient || true
+	sudo ip link del macvtap0 || true
 
 bridgeclean:
 	sudo killall dhclient || true
 	sudo ip link del tap0 || true
 	sudo ip link del br0 || true
-	sudo dhclient -v $(ETH_DEV) 
-	
-netclean: bridgeclean
+
+restoreIP:
+	sudo dhclient -v $(ETH_DEV)
+
+network: tap
+
+netclean: tapclean bridgeclean restoreIP
 
 
 
