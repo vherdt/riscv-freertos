@@ -1,0 +1,8 @@
+*.o
+*.asm
+*.elf
+.cproject
+.project
+.settings/
+*.bin
+a.out
