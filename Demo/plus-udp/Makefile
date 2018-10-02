@@ -162,26 +162,50 @@ force_true:
 
 ETH_DEV=enp0s31f6
 
+ifneq ("$(wildcard /dev/tap*)","")
+	NET_DEV = $(shell ls /dev/tap*)			#MacVTap
+else
+    ifneq ("$(wildcard /dev/net/tun)","")
+    	NET_DEV = /dev/net/tun				#bridge
+    endif
+endif
+
+testFunc:
+	echo $(NET_DEV) 
+
 sim: all
-	riscv-vp $(PROG).elf --memory-start=2147483648 --network-device=$(shell ls /dev/tap*)
+	riscv-vp $(PROG).elf --memory-start=2147483648 --network-device=$(NET_DEV)
 
 debug: all
-	riscv-vp $(PROG).elf --debug-mode --network-device=$(shell ls /dev/tap*) --memory-start=2147483648
+	riscv-vp $(PROG).elf --debug-mode --network-device=$(NET_DEV) --memory-start=2147483648
+
+bridge:
+	sudo killall dhclient || true
+	sudo ip tuntap add mode tap tap0
+	sudo ip link set tap0 address F0:00:00:00:00:00 up	#when bridging, virtual client needs "higher" MAC so that bridge keeps hosts mac
+	sudo brctl addbr br0
+	sudo brctl setfd br0 0
+	sudo brctl addif br0 $(ETH_DEV)
+	sudo dhclient br0	#important to call before adding tap0 to supress getting its IP
+	sudo brctl addif br0 tap0
+
+bridgeclean:
+	sudo killall dhclient || true
+	sudo ip link del tap0 || true
+	sudo ip link del br0 || true
+	sudo dhclient -v $(ETH_DEV)
 
 tap:
-	sudo ip link add link $(ETH_DEV) name macvtap0 type macvtap
-	sudo ip link set macvtap0 address F0:00:00:00:00:00 up
+	sudo ip link add link $(ETH_DEV) name tap0 type macvtap
+	sudo ip link set tap0 address F0:00:00:00:00:00 up
 	sudo chmod a+rw /dev/tap*
 	ls -la /dev/tap*
 	ip link show
 
 tapclean:
-	sudo killall dhclient || true
 	sudo ip link del macvtap0 || true
 
-network: tap
-
-netclean: tapclean
+netclean: tapclean bridgeclean
 
 
 
