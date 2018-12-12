@@ -4,7 +4,7 @@
 #include "irq.h"
 
 
-static volatile uint32_t * const PLIC_CLAIM_AND_RESPONSE_REGISTER = (uint32_t * const)0x40000004; 
+static volatile uint32_t * const PLIC_CLAIM_AND_RESPONSE_REGISTER = (uint32_t * const)0x40200004; 
 
 static BaseType_t irq_empty_handler() { return pdFALSE; }
 

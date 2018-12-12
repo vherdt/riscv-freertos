@@ -22,7 +22,7 @@ You can edit `main()` in `main.c` (Demo/standard-demo/main.c, also check the oth
 To build a FreeRTOS demo (requires the RISC-V GNU toolchain to be available in PATH),
 
 ```bash
-cd Demo/standard-demo
+cd Demo/integrated-interrupts
 make
 ```
 
