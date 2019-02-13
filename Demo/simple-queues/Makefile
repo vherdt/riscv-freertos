@@ -99,6 +99,7 @@ INCLUDES = \
 
 CFLAGS = \
 	$(WARNINGS) $(INCLUDES) \
+	-march=rv32ima \
 	-fomit-frame-pointer -fno-strict-aliasing -fno-builtin \
 	-D__gracefulExit -mcmodel=medany #-fPIC
 

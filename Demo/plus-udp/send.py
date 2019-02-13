@@ -7,7 +7,8 @@ client_socket.settimeout(1.0)
 message = b'test'
 #addr = ("192.168.0.188", 10001)
 #addr = ("127.0.0.1", 10000)
-addr = ("134.102.218.252", 10000)
+#addr = ("134.102.218.252", 10000)
+addr = ("192.168.122.138", 10000)
 
 while True:
     print("[send] {}".format(message))

@@ -21,6 +21,7 @@ CRT0	= $(ARCH_DIR)/boot.S
 FREERTOS_SOURCE_DIR	= ../../Source
 FREERTOS_PLUS_DIR	= ../../Plus
 FREERTOS_PLUS_UDP_DIR = ../../Plus/FreeRTOS-Plus-UDP
+FREERTOS_PLUS_TCP_DIR = ../../Plus/FreeRTOS-Plus-TCP
 FREERTOS_PLUS_FAT_DIR = ../../Plus/FreeRTOS-Plus-FAT
 CUNIT	= ../../../cunit
 
