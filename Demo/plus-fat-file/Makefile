@@ -171,7 +171,7 @@ force_true:
 #-------------------------------------------------------------
 
 sim: all
-	riscv-vp $(PROG).elf --memory-start=2147483648
+	riscv-vp $(PROG).elf --memory-start=2147483648 --mram-image mram-image.bin
 
 debug: all
 	riscv-vp $(PROG).elf --debug-mode --memory-start=2147483648
