@@ -187,7 +187,7 @@ testFunc:
 	echo $(NET_DEV)
 
 sim: all
-	riscv-vp $(PROG).elf --memory-start=2147483648 --network-device=$(NET_DEV)
+	riscv-vp $(PROG).elf --memory-start=2147483648 --network-device=$(NET_DEV) --intercept-syscalls
 
 debug: all
 	riscv-vp $(PROG).elf --debug-mode --network-device=$(NET_DEV) --memory-start=2147483648

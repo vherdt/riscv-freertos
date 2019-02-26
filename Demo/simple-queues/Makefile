@@ -148,4 +148,4 @@ force_true:
 
 #-------------------------------------------------------------
 sim: all
-	riscv-vp $(PROG).elf --memory-start=2147483648
+	riscv-vp $(PROG).elf --memory-start=2147483648 --intercept-syscalls
