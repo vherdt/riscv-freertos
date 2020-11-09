@@ -28,6 +28,6 @@ make
 
 ## Run
 ```bash
-riscv-vp riscv-main.elf --memory-start=2147483648
+riscv-vp riscv-main.elf --memory-start=2147483648 --intercept-syscalls
 ```
 
